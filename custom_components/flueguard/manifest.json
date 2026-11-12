@@ -2,13 +2,13 @@
   "domain": "flueguard",
   "name": "FlueGuard",
   "codeowners": [
-    "@flueguard"
+    "@HatchetMan111"
   ],
   "config_flow": true,
-  "documentation": "https://github.com/flueguard/ha-flueguard",
+  "documentation": "https://github.com/HatchetMan111/KaminOfenWaechter",
   "integration_type": "hub",
   "iot_class": "local_polling",
-  "issue_tracker": "https://github.com/flueguard/ha-flueguard/issues",
+  "issue_tracker": "https://github.com/HatchetMan111/KaminOfenWaechter/issues",
   "requirements": [],
   "version": "0.2.0"
 }
