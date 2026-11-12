@@ -212,8 +212,16 @@ class FlueGuardCoordinator(DataUpdateCoordinator[FlueGuardData]):
         if self.data is not None:
             await self._handle_transitions(self.data, result)
 
-        self._store.async_delay_save(self._data_to_save, 30)
+        # Persist only when the phase changes (rare). Saving on every update
+        # would keep resetting the delayed-save timer and never write.
+        if result.phase_changed:
+            self._store.async_delay_save(self._data_to_save, 5)
+
         return data
+
+    async def async_save_state(self) -> None:
+        """Flush the burn state to disk (e.g. on unload)."""
+        await self._store.async_save(self._data_to_save())
 
     def _calculate_rate(self, temperature: float, now: datetime) -> float:
         """Return a smoothed temperature change in deg C per minute."""

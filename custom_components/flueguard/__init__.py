@@ -24,6 +24,9 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 
 async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Unload a config entry."""
+    coordinator: FlueGuardCoordinator | None = getattr(entry, "runtime_data", None)
+    if coordinator is not None:
+        await coordinator.async_save_state()
     return await hass.config_entries.async_unload_platforms(entry, PLATFORMS)
 
 

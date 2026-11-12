@@ -13,6 +13,9 @@ Rauchgas 380 °C · Hauptabbrand
 → „Luft drosseln“ · Push aufs Handy
 ```
 
+> **Status:** v0.1.0 · getestet mit Home Assistant 2025.1 · 21 automatisierte
+> Tests (Logik + Integration) · MIT-Lizenz
+
 ---
 
 ## Inhaltsverzeichnis
@@ -54,7 +57,7 @@ Die Physik dahinter ist unbarmherzig:
 Kommerzielle Abbrandsteuerungen machen genau das – sie messen die Temperatur
 und regeln die Luftklappe automatisch. Systeme wie die
 [KBS Feuer Control ASG/ASM](https://www.ofen-schraps.de/kamin-und-kachelofenbau/elektronische-abbrandsteuerung/)
-liegen bei ~595 € zzgl. Einbau und werden vom Ofenbauer eingerichtet. Das ist
+liegen bei 595 € netto zzgl. Einbau und werden vom Ofenbauer eingerichtet. Das ist
 sinnvoll – aber erst, wenn man weiß, dass man es braucht.
 
 **FlueGuard ist der günstige, risikofreie Zwischenschritt:** 15–25 € Hardware,
