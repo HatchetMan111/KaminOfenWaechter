@@ -1,5 +1,7 @@
 # 🔥 FlueGuard – Rauchgasüberwachung für Holzöfen
 
+<img src="custom_components/flueguard/brand/icon.png" width="88" align="right" alt="FlueGuard">
+
 **FlueGuard** ist eine HACS-Integration für Home Assistant, die einen beliebigen
 Temperatursensor an deinem Holzofen auswertet und daraus erkennt, in welcher
 Abbrandphase der Ofen gerade ist – und was du mit der Luftzufuhr tun solltest.
