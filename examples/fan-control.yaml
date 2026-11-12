@@ -1,0 +1,102 @@
+# Beispiel: Ventilator folgt dem Abbrand
+#
+# Voraussetzungen:
+#   - FlueGuard ist eingerichtet.
+#   - fan.ofen_ventilator existiert und unterstützt fan.set_percentage.
+#     Bei einem einfachen Smart Plug stattdessen switch.turn_on/off nutzen
+#     und die Rampe weglassen.
+#   - sensor.wohnzimmer_temperatur existiert (für die Raumtemperatur-Begrenzung).
+#
+# Entity-IDs anpassen!
+
+automation:
+  # 1) Drehzahl folgt der Rauchgastemperatur, mit Nacht- und Raum-Cap.
+  - alias: "Ofen: Ventilator nach Rauchgastemperatur"
+    id: flueguard_fan_speed
+    trigger:
+      - platform: state
+        entity_id: sensor.kamin_rauchgastemperatur
+      - platform: state
+        entity_id: binary_sensor.kamin_abbrand_aktiv
+        to: "on"
+    condition:
+      - condition: state
+        entity_id: binary_sensor.kamin_abbrand_aktiv
+        state: "on"
+      - condition: numeric_state
+        entity_id: sensor.kamin_rauchgastemperatur
+        above: 140
+    action:
+      - variables:
+          temp: "{{ states('sensor.kamin_rauchgastemperatur') | float(0) }}"
+          room: "{{ states('sensor.wohnzimmer_temperatur') | float(20) }}"
+          night: "{{ now().hour >= 22 or now().hour < 7 }}"
+          cap: >-
+            {% if night %}30{% elif room > 24 %}40{% else %}85{% endif %}
+          pct: >-
+            {% set p = ((temp - 120) / 180 * 60) + 20 %}
+            {{ [cap | int, [15, p] | max] | min | round(0) | int }}
+      - service: fan.set_percentage
+        target:
+          entity_id: fan.ofen_ventilator
+        data:
+          percentage: "{{ pct }}"
+    mode: single
+
+  # 2) Ausschalten mit Nachlauf, oder wenn das Rauchgas zu kalt wird.
+  - alias: "Ofen: Ventilator aus"
+    id: flueguard_fan_off
+    trigger:
+      - platform: state
+        entity_id: binary_sensor.kamin_abbrand_aktiv
+        to: "off"
+        for: "00:15:00"
+      - platform: numeric_state
+        entity_id: sensor.kamin_rauchgastemperatur
+        below: 140
+        for: "00:05:00"
+    action:
+      - service: fan.turn_off
+        target:
+          entity_id: fan.ofen_ventilator
+
+  # 3) Notkühlung bei Übertemperatur.
+  - alias: "Ofen: Notkühlung"
+    id: flueguard_fan_boost
+    trigger:
+      - platform: numeric_state
+        entity_id: sensor.kamin_rauchgastemperatur
+        above: 480
+        for: "00:01:00"
+    action:
+      - service: fan.set_percentage
+        target:
+          entity_id: fan.ofen_ventilator
+        data:
+          percentage: 100
+      - service: notify.mobile_app_handy
+        data:
+          title: "🔥 Ofen: Notkühlung aktiv"
+          message: >-
+            Rauchgas {{ states('sensor.kamin_rauchgastemperatur') }} °C.
+            Ventilator läuft auf 100 %. Primärluft prüfen.
+
+  # 4) Optional: manueller Boost per Schalter/Taster für 20 Minuten.
+  #     Erfordert input_boolean.ofen_ventilator_boost.
+  - alias: "Ofen: Ventilator Boost"
+    id: flueguard_fan_manual_boost
+    trigger:
+      - platform: state
+        entity_id: input_boolean.ofen_ventilator_boost
+        to: "on"
+        for: "00:00:10"
+    action:
+      - service: fan.set_percentage
+        target:
+          entity_id: fan.ofen_ventilator
+        data:
+          percentage: 100
+      - delay: "00:20:00"
+      - service: input_boolean.turn_off
+        target:
+          entity_id: input_boolean.ofen_ventilator_boost

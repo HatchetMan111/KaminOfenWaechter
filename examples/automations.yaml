@@ -51,3 +51,24 @@ automation:
             Rauchgas nur noch
             {{ states('sensor.kamin_rauchgastemperatur') }} °C.
             Wenn noch Glut da ist: 1–2 Scheite nachlegen.
+
+  # Wenn der Abbrand vorbei ist, die Abgastemperatur aber hoch bleibt,
+  # wurde die Primärluft vermutlich nicht geschlossen.
+  - alias: "Ofen: Luftzufuhr noch offen?"
+    trigger:
+      - platform: state
+        entity_id: binary_sensor.kamin_abbrand_aktiv
+        to: "off"
+        for: "00:45:00"
+    condition:
+      - condition: numeric_state
+        entity_id: sensor.kamin_rauchgastemperatur
+        above: 150
+    action:
+      - service: notify.mobile_app_handy
+        data:
+          title: "Ofen: Luftzufuhr prüfen"
+          message: >-
+            Der Abbrand ist vorbei, aber das Rauchgas ist noch
+            {{ states('sensor.kamin_rauchgastemperatur') }} °C warm.
+            Primärluft geschlossen?

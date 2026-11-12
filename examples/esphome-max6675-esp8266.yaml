@@ -1,0 +1,66 @@
+# Beispiel: ESP8266 (D1 mini) + MAX6675 + Typ-K-Thermoelement
+#
+# Die günstige Variante. Läuft so ähnlich in der simon42-Community
+# in der Putzklappe. MAX6675 kann 0–1024 °C, Auflösung 0,25 °C.
+#
+# Verdrahtung (ESP8266 Hardware-SPI):
+#   MAX6675 VCC -> 3V3
+#   MAX6675 GND -> GND
+#   MAX6675 SCK -> GPIO14 (D5)
+#   MAX6675 CS  -> GPIO15 (D8)
+#   MAX6675 SO  -> GPIO12 (D6)   [fest verdrahtet, nicht konfigurierbar]
+#
+# Hinweis: MOSI (GPIO13) wird nicht benutzt, das Modul ist nur lesend.
+
+esphome:
+  name: kamin-rauchgas-esp8266
+  friendly_name: Kamin Rauchgas (ESP8266)
+
+esp8266:
+  board: d1_mini
+
+logger:
+  level: INFO
+  logs:
+    max6675: WARN
+
+api:
+  encryption:
+    key: "BITTE-ERSETZEN-32-BYTE-BASE64-KEY"
+
+ota:
+  - platform: esphome
+    password: "BITTE-ERSETZEN"
+
+wifi:
+  ssid: !secret wifi_ssid
+  password: !secret wifi_password
+  ap:
+    ssid: "Kamin-Rauchgas Fallback"
+    password: "BITTE-ERSETZEN"
+
+captive_portal:
+
+spi:
+  clk_pin: GPIO14
+
+sensor:
+  - platform: max6675
+    name: "Abgastemperatur Holzofen"
+    cs_pin: GPIO15
+    update_interval: 10s
+    filters:
+      - median:
+          window_size: 5
+          send_every: 5
+      - clamp:
+          min_value: -20
+          max_value: 900
+
+  - platform: wifi_signal
+    name: "WLAN Signal"
+    update_interval: 60s
+
+button:
+  - platform: restart
+    name: "Neustart"

@@ -44,3 +44,10 @@ cards:
     hours_to_show: 12
     entities:
       - entity: sensor.kamin_rauchgastemperatur
+
+  # Optional: Wärmeverteilung
+  - type: entities
+    title: Wärmeverteilung
+    entities:
+      - entity: fan.ofen_ventilator
+      - entity: sensor.wohnzimmer_temperatur

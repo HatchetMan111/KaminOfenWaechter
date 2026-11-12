@@ -3,7 +3,8 @@
 <img src="custom_components/flueguard/brand/icon.png" width="88" align="right" alt="FlueGuard">
 
 **FlueGuard** ist eine HACS-Integration für Home Assistant, die einen beliebigen
-Temperatursensor an deinem Holzofen auswertet und daraus erkennt, in welcher
+Temperatursensor an deinem Ofen (Kamin-, Kachel-, Koch- oder Pelletofen)
+auswertet und daraus erkennt, in welcher
 Abbrandphase der Ofen gerade ist – und was du mit der Luftzufuhr tun solltest.
 
 Kein Eingriff in die Feuerung, keine Typprüfung, keine Garantiefrage: FlueGuard
@@ -25,28 +26,35 @@ Rauchgas 380 °C · Hauptabbrand
 1. [Das Problem](#das-problem)
 2. [Was FlueGuard macht](#was-flueguard-macht)
 3. [Einsparungspotenzial](#einsparungspotenzial)
-4. [Hardware: womit messen?](#hardware-womit-messen)
+4. [Ofentypen im Überblick](#ofentypen-im-überblick)
+5. [Hardware: womit messen?](#hardware-womit-messen)
    - [ESP32 + Thermoelement (empfohlen)](#esp32--thermoelement-empfohlen)
+   - [ESP8266 + MAX6675 (die günstige Variante)](#esp8266--max6675-die-günstige-variante)
    - [„Fleischthermometer“ & fertige Funkthermometer](#fleischthermometer--fertige-funkthermometer)
+   - [Einfachste Variante ohne Bohren](#einfachste-variante-ohne-bohren)
    - [Weitere Optionen](#weitere-optionen)
-5. [Montage in der Putzklappe](#montage-in-der-putzklappe)
-6. [Sicherheit & Recht](#sicherheit--recht)
-7. [Installation über HACS](#installation-über-hacs)
-8. [Einrichtung](#einrichtung)
-9. [Entitäten & Events](#entitäten--events)
-10. [Beispiel-Automationen](#beispiel-automationen)
-11. [Wie die Erkennung funktioniert](#wie-die-erkennung-funktioniert)
-12. [Tuning & FAQ](#tuning--faq)
-13. [Vor dem Veröffentlichen](#vor-dem-veröffentlichen)
-14. [Lizenz & Haftung](#lizenz--haftung)
+6. [Montage in der Putzklappe](#montage-in-der-putzklappe)
+7. [Wärmeverteilung: Ventilatoren automatisch steuern](#wärmeverteilung-ventilatoren-automatisch-steuern)
+8. [Sicherheit & Recht](#sicherheit--recht)
+9. [Installation über HACS](#installation-über-hacs)
+10. [Einrichtung](#einrichtung)
+11. [Entitäten & Events](#entitäten--events)
+12. [Beispiel-Automationen](#beispiel-automationen)
+13. [Wie die Erkennung funktioniert](#wie-die-erkennung-funktioniert)
+14. [Tuning & FAQ](#tuning--faq)
+15. [Quellen & weiterlesen](#quellen--weiterlesen)
+16. [Vor dem Veröffentlichen](#vor-dem-veröffentlichen)
+17. [Lizenz & Haftung](#lizenz--haftung)
 
 ---
 
 ## Das Problem
 
-Ein Kamin- oder Kachelofen hat keine Regelung. Die Luftzufuhr stellst du per
-Hand ein – und ob das gerade richtig ist, merkst du erst am Feuer, am
-Holzverbrauch oder am Glanzruß im Schornstein.
+Ein **scheitbefeuerter** Kamin-, Kachel- oder Kochofen hat keine Regelung.
+Die Luftzufuhr stellst du per Hand ein – und ob das gerade richtig ist, merkst
+du erst am Feuer, am Holzverbrauch oder am Glanzruß im Schornstein.
+(Pelletöfen sind die Ausnahme: Sie regeln sich selbst. Was das für FlueGuard
+bedeutet, steht unter [Ofentypen](#ofentypen-im-überblick).)
 
 Die Physik dahinter ist unbarmherzig:
 
@@ -155,6 +163,126 @@ Hardware also nach dem ersten Winter bezahlt.
   läuft, lassen sich Fragen zu Wirkungsgrad, Nachrüstung und Abgasweg viel
   konkreter klären.
 
+Der zweite große Hebel neben der Luftzufuhr ist die **Wärmeverteilung mit
+Ventilatoren** – dazu weiter unten ein eigener Abschnitt.
+
+---
+
+## Ofentypen im Überblick
+
+FlueGuard ist ofentyp-unabhängig: Es liest nur einen Temperatursensor. Aber
+Dynamik, Schwellwerte, Montageort und sinnvolle Zusatztechnik unterscheiden
+sich deutlich. Die Defaults sind auf einen **freistehenden Kaminofen mit
+Messung nah am Ofen** ausgelegt.
+
+| Ofentyp | Abgas typ. | Dynamik | Sensor am besten | Größter Nutzen |
+|---|---|---|---|---|
+| Freistehender Kaminofen | 250–500 °C | schnell (Minuten) | Putzklappe / Rauchrohr | Phasen + Ventilator |
+| Kachelofen / Grundofen | 120–300 °C | träge (Stunden) | Putzklappe | Überfeuerung erkennen |
+| Heizkamin / Kassette / Warmluftofen | 250–450 °C | mittel | Rauchrohr | Warmluft-Ventilator |
+| Kochofen / Holzherd | 200–500 °C | schnell, spitzig | Rauchrohr | Herdstatus + Dunstabzug |
+| Pelletsofen | 80–250 °C | geregelt | Hersteller-API | unabhängiger Wächter |
+| Holzvergaser / Kessel | 150–250 °C | geregelt | vorhandener Fühler | Plausibilitätscheck |
+| Offener Kamin | 200–400 °C | schnell | Rauchrohr | nur Sicherheit |
+| Gas-/Elektrokamin | – | – | – | nicht sinnvoll |
+
+### Freistehender Kaminofen
+
+Der klassische Fall – und der, für den die Defaults gemacht sind. Stahl- oder
+Gusseisenofen mit Sichtscheibe, wenig Speichermasse, schnelle Reaktion.
+Hier lohnt der Ventilator am meisten (siehe
+[Wärmeverteilung](#wärmeverteilung-ventilatoren-automatisch-steuern)).
+
+- Schwellwerte: Defaults passen.
+- Sensor: Putzklappe oder Rauchrohr, möglichst nah am Stutzen.
+- Typische Abbranddauer: 45–90 Minuten pro Auflage.
+
+### Kachelofen / Grundofen
+
+Viel Speichermasse, lange Abbrandphasen, oft nur ein oder zwei Abbrände pro
+Tag. Das Abgas ist kühler und die Kurve deutlich flacher.
+
+- `ignition_max_minutes` auf **30–45** erhöhen.
+- `burnout_rate` auf **−0,3 bis −0,8 °C/min** setzen (weniger negativ).
+- `cold_threshold` eher bei **60–80 °C**, weil das Abgas im kalten Zustand
+  lange nachwärmt.
+- **Ventilator:** wenig sinnvoll für die Wärmeverteilung (der Ofen strahlt),
+  aber ein langsamer Deckenventilator hilft gegen Wärmestau unter der Decke.
+  Keine kalte Luft direkt auf die Kacheln blasen – Thermospannung kann
+  Risse begünstigen.
+- Nutzen: erkennen, ob zu heiß oder zu lange mit offener Luft gefeuert wurde –
+  gerade weil man den Abbrand nicht direkt sieht.
+
+### Heizkamin / Kaminkassette / Warmluftofen
+
+Hier ist die Wärmeabgabe **konvektiv**, oft über Kanäle oder einen
+Wärmetauscher. Das ist der Ofentyp, bei dem die Ventilatorsteuerung den
+größten Unterschied macht.
+
+- Sensor im Rauchrohr oder in der Putzklappe.
+- Warmluftkanäle: nur zugelassene Bauteile, Brandschutzklappen und
+  Temperaturgrenzen beachten. Der Ventilator darf nicht die einzige Kühlung
+  sein – bei Ausfall muss die Wärme anders abgeführt werden können.
+- FlueGuard kann den Kanalventilator phasen- und temperaturabhängig steuern
+  (Beispiel unten).
+
+### Kochofen / Holzherd
+
+Kochen und Heizen in einem. Die Abgastemperatur ist hoch und schwankt stark,
+weil ständig nachgelegt oder die Herdplatte abgedeckt wird.
+
+- Sensor im Rauchrohr, nicht in der Herdplatte (das ist eine andere Temperatur).
+- FlueGuard zeigt „Herd auf Temperatur“ und „Ausbrand“ – praktisch, wenn man
+  nebenbei kocht.
+- **Dunstabzug:** kritisch. Eine Abzugshaube kann dem Schornstein die Luft
+  wegziehen und den Ofen rückwärts ziehen lassen. Nur mit
+  Differenzdruckwächter / Fensterkontaktschaltung betreiben – das ist keine
+  Bastelei, sondern Sicherheitsrelevanz.
+- Ventilator: Küchenlüftung nur mit Freigabe, nie während der Ofen schwelt.
+
+### Pelletsofen
+
+Pelletöfen bringen ihre eigene Regelung mit: Zufuhr, Luft und Zündung laufen
+automatisch, viele Modelle haben WLAN, App oder Modbus. FlueGuard ist hier
+**kein Ersatz**, sondern ein unabhängiger Wächter.
+
+- Sinnvoll: Abgastemperatur als Plausibilitätscheck („läuft der Ofen wie
+  erwartet?“, „Feedstörung?“), Übertemperatur, Betriebsstunden.
+- Besser zuerst die Herstellerdaten in Home Assistant holen (Modbus, API,
+  Cloud) und FlueGuard nur als zweiten Kanal nutzen.
+- Die Phasenlogik („nachlegen“) ist beim Pelletsofen sinnlos – der Ofen
+  entscheidet selbst. Schwellwerte entsprechend hoch setzen oder die
+  Empfehlungen ignorieren.
+
+### Holzvergaser / Zentralkessel
+
+Hier gibt es bereits Lambdaregelung, Pufferspeicher und meist einen
+Abgastemperaturfühler. FlueGuard kann deren Werte auslesen und visualisieren,
+aber keine Regelung übernehmen.
+
+- Typische Abgastemperatur: 150–250 °C.
+- Wirkungsgrad misst man wasserseitig mit einem Wärmemengenzähler, nicht über
+  die Abgastemperatur.
+- Nutzen: Überwachung, Statistik, Alarm bei ungewöhnlich hoher Abgastemperatur
+  (z. B. Wärmetauscher verrußt).
+
+### Offener Kamin
+
+Kein geschlossener Feuerraum, schlechter Wirkungsgrad, hohe Emissionen. Für
+Effizienzversprechen ist das der falsche Ofen. FlueGuard kann hier nur
+Sicherheitsüberwachung leisten („Feuer noch an?“), keine Einsparung.
+
+### Gas- und Elektrokamin
+
+Ein Elektrokamin hat kein Rauchgas – hier ist nur die Raumtemperatur
+interessant. Gasöfen sind meist raumluftunabhängig und geregelt; Eingriffe
+gehören in die Hand des Fachbetriebs. FlueGuard ist dafür nicht gedacht.
+
+> **Kurz gesagt:** Kaminofen = Defaults + Ventilator. Kachelofen = langsamer
+> und kühler einstellen. Heizkamin/Warmluft = Ventilatorsteuerung ist der
+> Hauptgewinn. Kochofen = Abgas + Dunstabzug-Interlock. Pellet/Kessel = lieber
+> die vorhandenen Daten lesen und FlueGuard als Wächter nutzen.
+
 ---
 
 ## Hardware: womit messen?
@@ -240,6 +368,56 @@ Vergleichsmessung mit einem Referenzthermometer bei niedriger Temperatur und
 `offset:` im ESPHome-Sensor setzen, oder die Abweichung später in FlueGuard
 über die Schwellwerte ausgleichen.
 
+### ESP8266 + MAX6675 (die günstige Variante)
+
+Wenn du noch einen ESP8266 (D1 mini, NodeMCU) liegen hast, reicht auch der
+ältere **MAX6675** statt MAX31855. In der simon42-Community läuft genau diese
+Kombination erfolgreich in der Putzklappe – inklusive Holzverbrauchsschätzung
+über die Betriebsstunden.
+
+**Verdrahtung (MAX6675 → ESP8266)**
+
+```
+VCC   → 3V3
+GND   → GND
+SCK   → GPIO14 (D5)
+CS    → GPIO15 (D8)
+SO    → GPIO12 (D6)
+```
+
+**ESPHome** (vollständig in
+[`examples/esphome-max6675-esp8266.yaml`](examples/esphome-max6675-esp8266.yaml)):
+
+```yaml
+spi:
+  clk_pin: GPIO14
+
+sensor:
+  - platform: max6675
+    name: "Abgastemperatur Holzofen"
+    cs_pin: GPIO15
+    update_interval: 10s
+```
+
+Unterschiede zum MAX31855:
+
+| | MAX6675 | MAX31855 |
+|---|---|---|
+| Auflösung | 0,25 °C | 0,25 °C |
+| Messbereich | 0–1024 °C | −270…1800 °C |
+| Schnittstelle | SPI, nur Lesen | SPI, mehr Diagnose |
+| Preis | ~2–3 € | ~4–7 € |
+| Fehlerdiagnose | keine | OC/SCG/SCV |
+
+Für Rauchgas bis 600 °C reicht der MAX6675 vollkommen. Nimm den MAX31855,
+wenn du Fehlerdiagnose und etwas Reserve willst.
+
+> **Kabel verlängern:** Kurze Verlängerungen mit normalem Kupferdraht
+> funktionieren oft, solange beide Kontaktstellen dieselbe Temperatur haben
+> (die Gegenstelle kompensiert sich dann). Sauberer und bei langen Wegen
+> Pflicht: **Typ-K-Ausgleichsleitung**. Das MAX6675-Board muss außerhalb der
+> Hitze sitzen, weil dort die Kaltstellenkompensation stattfindet.
+
 ### „Fleischthermometer“ & fertige Funkthermometer
 
 Die Idee liegt nahe: Es gibt günstige BBQ-/Fleischthermometer mit
@@ -270,10 +448,78 @@ nicht funktioniert:
 die für genau diesen Zweck gebaut ist. Die „Fleischthermometer“-Variante ist
 eine Bastellösung mit unklarer Lebensdauer.
 
+### Einfachste Variante ohne Bohren
+
+Nicht jeder darf oder will die Putzklappe anbohren – Mietwohnung, denkmalgeschützter
+Kachelofen, oder einfach Respekt vor der Abgasanlage. Für einen reinen
+**„Nachlegen“-Reminder** reicht ein Raumtemperatursensor in der Nähe des Ofens.
+
+Der Ansatz aus dem
+[simon42-Community-Thread](https://community.simon42.com/t/kamin-erinnerung-nachzulegen/30026/19):
+Ein Sensor über der Ofentür (dort bleiben die Temperaturen unter ~60 °C) und
+eine Trend-Erkennung. Fällt die Temperatur innerhalb von 30 Minuten um
+~2 °C, ist der Abbrand am Ausgehen.
+
+```yaml
+binary_sensor:
+  - platform: trend
+    sensors:
+      kamin_kuehlt_ab:
+        friendly_name: "Kamin kühlt ab"
+        entity_id: sensor.kamin_raumtemperatur
+        max_samples: 60
+        sample_duration: 1800   # 30 Minuten bei 30-s-Updates
+        min_gradient: -0.001    # ≈ -2 °C in 30 Minuten
+```
+
+```yaml
+automation:
+  - alias: "Kamin: Nachlegen erinnern"
+    trigger:
+      - platform: state
+        entity_id: binary_sensor.kamin_kuehlt_ab
+        to: "on"
+        for: "00:10:00"
+    condition:
+      - condition: state
+        entity_id: binary_sensor.kamin_abbrand_aktiv
+        state: "on"
+      - condition: state
+        entity_id: input_boolean.nachlegen_quittiert
+        state: "off"
+    action:
+      - service: notify.mobile_app_handy
+        data:
+          title: "Kamin: Nachlegen?"
+          message: "Die Temperatur fällt – wenn noch Glut da ist, jetzt nachlegen."
+```
+
+**Quittieren:** Ein Funkbutton oder NFC-Tag neben dem Ofen setzt
+`input_boolean.nachlegen_quittiert` für 5 Minuten auf `on`, damit nach dem
+Auflegen nicht sofort wieder erinnert wird. Genau so löst es der Thread-Ersteller
+mit seiner Sprachausgabe.
+
+**Grenzen dieser Variante:**
+
+- Sie erkennt nur „es wird kalt“, nicht **wie effizient** der Ofen brennt.
+- Die Raumtemperatur wird von Heizung, Fensterlüftung und Sonne überlagert.
+- Der Sensor darf nicht zu nah an den Ofen – viele Raumfühler enden bei 60 °C.
+- Keine absolute Rauchgastemperatur, also kein Wirkungsgrad und keine
+  Übertemperaturwarnung.
+
+Für „einfach nur erinnern“ ist das trotzdem ein guter Einstieg – und später
+kannst du jederzeit auf einen Fühler in der Putzklappe aufrüsten.
+
 ### Weitere Optionen
 
 - **PT100/PT1000 + MAX31865**: sehr linear, im Bereich 0–600 °C genauer als
   Typ K, aber teurer und die Fühler sind mechanisch empfindlicher.
+- **MLX90614 (Infrarot, berührungslos)**: misst die Oberfläche des Rauchrohrs
+  aus 5–15 cm Entfernung, I2C, Objekttemperatur bis ~380 °C. Vorteil: **kein
+  Bohren**. Nachteile: Emissivität von Ruß/Edelstahl ist unbekannt (→
+  kalibrieren), Verschmutzung, Abstand muss stimmen, und es ist eben nur die
+  Rohroberfläche, nicht das Gas. Für die Phasenerkennung brauchbar, für
+  absolute Werte nicht. Wird in der Community genau dafür eingesetzt.
 - **Hochtemperatur-NTC** (z. B. 100 kΩ, bis 300–400 °C) an ESPHome `ntc`:
   billig, aber nichtlinear und die Auswahl ist unübersichtlich.
 - **4–20-mA-Messumformer**: für lange Leitungen und industrielle Fühler,
@@ -397,6 +643,142 @@ und passe die Schwellwerte an:
 
 ---
 
+## Wärmeverteilung: Ventilatoren automatisch steuern
+
+Ein Holzofen gibt Wärme auf zwei Wegen ab: **Strahlung** (direkt, nur in
+Sichtlinie) und **Konvektion** (Luft, die am Ofen aufsteigt). Die warme Luft
+sammelt sich unter der Decke, während es am Boden kalt bleibt. Ein Ventilator
+verteilt sie – und kühlt gleichzeitig den Ofenkörper, wodurch mehr Wärme in den
+Raum und weniger ins Abgas geht.
+
+Das ist der zweitgrößte Hebel nach der Luftzufuhr. Wichtig: **nicht zu stark
+kühlen**, sonst sinkt die Rauchgastemperatur in den Bereich, in dem sich
+Glanzruß bildet.
+
+### Welcher Ventilator passt?
+
+| Typ | Strom | HA-Steuerung | Geeignet für |
+|---|---|---|---|
+| Thermoelektrischer Ofenventilator | keiner (Peltier) | ❌ | Kaminofen, einfacher Einstieg |
+| Raumventilator an Smart Plug | 230 V | ✅ an/aus | freistehender Ofen |
+| EC-/PWM-Ventilator | 12/24 V | ✅ stufenlos | Warmluftkanäle, Heizkamin |
+| Deckenventilator | 230 V | ✅ | Wärmestau unter der Decke |
+| Kanalventilator | 230 V | ✅ | Warmluftofen (Fachbetrieb!) |
+| Kontrollierte Wohnraumlüftung | 230 V | ✅ | ganzes Haus, balanced |
+
+Der **thermoelektrische Ofenventilator** ist die einfachste Lösung: Er startet
+bei ~50–60 °C von selbst, regelt die Drehzahl über die Temperatur und braucht
+keinen Stromanschluss. Für „einfach nur verteilen“ völlig ausreichend – aber
+er ist nicht in Home Assistant sichtbar und nicht abschaltbar.
+
+**12-V-Ventilator stufenlos per ESPHome** (für Bastler):
+
+```yaml
+output:
+  - platform: ledc
+    pin: GPIO25
+    id: fan_pwm
+    frequency: 25000 Hz
+
+fan:
+  - platform: speed
+    output: fan_pwm
+    name: "Ofen Ventilator"
+```
+
+Wichtig: Ein 12-V-Lüfter gehört **nicht** direkt an den GPIO, sondern über
+einen MOSFET oder ein Treibermodul. Der ESP liefert nur das PWM-Signal.
+
+### Die Steuerlogik
+
+Eine gute Ventilatorautomatik arbeitet mit **Phase + Rauchgastemperatur +
+Raumtemperatur**, nicht mit einer festen Einschalttemperatur.
+
+| Bedingung | Ventilator |
+|---|---|
+| Kein Abbrand (`idle` / `burnout`) | aus (nach 10–15 min Nachlauf) |
+| `ignition` / `main`, Rauchgas 140–300 °C | 20–80 % linear |
+| Rauchgas > 350 °C | 80–100 % |
+| Rauchgas > Warnschwelle (450 °C) | 100 % Notkühlung |
+| Rauchgas < 140 °C | aus (Glanzruß vermeiden) |
+| Raumtemperatur über Wunsch | Leistung reduzieren |
+| Nachtmodus 22–7 Uhr | max. 30 % |
+| Manueller Boost | 100 % für 20 min |
+
+Wichtig ist die **Mindesttemperatur**: Ein Ventilator, der den Ofen bei
+150 °C Rauchgas weiter kühlt, verschiebt den Taupunkt und fördert
+Ablagerungen. Deshalb läuft er nur, solange der Ofen wirklich heiß ist.
+
+### Beispiel-Automation
+
+Vollständig in [`examples/fan-control.yaml`](examples/fan-control.yaml).
+Der Kern:
+
+```yaml
+- alias: "Ofen: Ventilator nach Rauchgastemperatur"
+  trigger:
+    - platform: state
+      entity_id: sensor.kamin_rauchgastemperatur
+    - platform: state
+      entity_id: binary_sensor.kamin_abbrand_aktiv
+      to: "on"
+  condition:
+    - condition: state
+      entity_id: binary_sensor.kamin_abbrand_aktiv
+      state: "on"
+    - condition: numeric_state
+      entity_id: sensor.kamin_rauchgastemperatur
+      above: 140
+  action:
+    - variables:
+        temp: "{{ states('sensor.kamin_rauchgastemperatur') | float(0) }}"
+        pct: >-
+          {% set p = ((temp - 120) / 180 * 60) + 20 %}
+          {{ [85, [15, p] | max] | min | round(0) | int }}
+    - service: fan.set_percentage
+      target:
+        entity_id: fan.ofen_ventilator
+      data:
+        percentage: "{{ pct }}"
+  mode: single
+```
+
+Dazu eine Ausschalt-Automation mit Nachlauf und eine Notkühlung bei
+Übertemperatur. Wer nur einen Smart Plug hat, ersetzt `fan.set_percentage`
+durch `switch.turn_on` und lässt die Rampe weg.
+
+### Sicherheitsregeln
+
+- Der Ventilator bewegt **Raumluft**, nicht die Verbrennungsluft. Nie direkt
+  in die Luftansaugung des Ofens blasen – das verändert den Zug.
+- Abstand zu heißen Flächen, hitzebeständiges Gehäuse, Kabel nicht über den
+  Ofen führen. Keine Billig-Plastikventilatoren direkt am Rauchrohr.
+- Der Ventilator ist **keine** Sicherheitseinrichtung. Übertemperatur muss
+  zusätzlich akustisch/visuell gemeldet werden.
+- **Dunstabzug und zentrale Absaugung** können den Schornstein umkehren. In
+  dichten Häusern Differenzdruckwächter oder Fensterkontaktschaltung
+  vorsehen – das ist Fachbetriebsarbeit.
+- **Warmluftkanäle**: nur zugelassene Bauteile, Brandschutzklappen,
+  Temperaturgrenzen. Ein Kanalventilator darf nicht die einzige Kühlung sein.
+- **Kachelofen**: keine kalte Luft direkt auf die Kacheln blasen
+  (Thermospannung). Lieber langsam die Raumluft umwälzen.
+
+### Was bringt es wirklich?
+
+- **Komfort:** deutlich gleichmäßigere Wärme, warme Füße, weniger
+  „Hitze-Kopf“ unter der Decke.
+- **Effizienz:** Ein Ventilator über dem Ofen kann die Rauchgastemperatur um
+  **20–50 K** senken, weil mehr Wärme an den Raum abgegeben wird. Das sind
+  grob **2–5 %** Holz – kein Wundermittel, aber spürbar.
+- **Überhitzungsschutz:** Bei zu heißem Ofen kann der Ventilator die
+  Oberflächentemperatur senken, bevor der Ofen Schaden nimmt.
+
+Der schöne Nebeneffekt: Mit FlueGuard kannst du den Effekt **messen** –
+Rauchgastemperatur mit und ohne Ventilator vergleichen, und du siehst sofort,
+ob deine Einstellung wirklich etwas bringt.
+
+---
+
 ## Sicherheit & Recht
 
 **FlueGuard ist eine Anzeige, keine Regelung.** Das ist kein Zufall:
@@ -415,6 +797,11 @@ Weitere Punkte:
 - **1. BImSchV** und die regionale Kehr- und Überprüfungsordnung gelten
   weiterhin. Ein zusätzlicher Fühler ändert daran nichts, solange die Anlage
   dicht und unverändert bleibt.
+- **Aufstellabstände** nach Herstellerangabe: typisch mindestens 20 cm zu
+  Seitenwänden (bei Sichtfenstern mehr), 80 cm zu Möbeln und eine
+  Bodenplatte, die seitlich ~30 cm und nach vorn ~50 cm übersteht. Die
+  Herstellerangaben haben Vorrang – das ist keine Empfehlung, sondern
+  Brandschutz.
 - **CO-Melder** in den Aufstellraum – 20–30 €, unabhängig von diesem Projekt.
   Besonders wichtig, wenn die Putzklappe im Wohnraum liegt.
 - **Sekundärluft bleibt offen.** Sie ist für die Nachverbrennung und die
@@ -531,6 +918,11 @@ Alle Events landen auf dem HA-Bus und enthalten `entry_id`, `source_entity`,
 
 ## Beispiel-Automationen
 
+Die vollständigen Dateien liegen unter
+[`examples/automations.yaml`](examples/automations.yaml),
+[`examples/fan-control.yaml`](examples/fan-control.yaml) und
+[`examples/dashboard.yaml`](examples/dashboard.yaml).
+
 ### Push-Nachricht bei Übertemperatur
 
 Die Integration kann das selbst – wer volle Kontrolle will, baut es so:
@@ -640,10 +1032,38 @@ cards:
 
 ### Statistik: Holzverbrauch schätzen
 
-`binary_sensor.abbrand_aktiv` lässt sich mit einem **Verlaufssensor** oder
-`utility_meter` in Brennstunden umrechnen. Multipliziert mit dem
-Durchsatz deines Ofens (kg/h, aus der Bedienungsanleitung) ergibt das eine
-grobe Verbrauchsschätzung – gut, um Veränderungen zu sehen.
+`binary_sensor.abbrand_aktiv` in Brennstunden umrechnen und mit dem Durchsatz
+deines Ofens (kg/h aus der Bedienungsanleitung, typisch 1,5–3 kg/h)
+multiplizieren. Genau so macht es auch der simon42-Thread – dort landet der
+geschätzte Verbrauch im Energiedashboard.
+
+```yaml
+sensor:
+  - platform: history_stats
+    name: "Abbrand heute"
+    entity_id: binary_sensor.kamin_abbrand_aktiv
+    state: "on"
+    type: time
+    start: "{{ today_at('00:00') }}"
+    end: "{{ now() }}"
+
+  - platform: template
+    sensors:
+      holzverbrauch_heute:
+        friendly_name: "Holzverbrauch heute"
+        unit_of_measurement: "kg"
+        value_template: >-
+          {{ (states('sensor.abbrand_heute') | float(0) * 2.0) | round(1) }}
+```
+
+`2.0` ist der Durchsatz in kg/h – anpassen. Die Schätzung ist grob
+(Holzart, Feuchte, Luftstellung), aber für Trends und Wochenvergleiche sehr
+brauchbar.
+
+**Nebeneffekt:** Wenn der Abbrand längst vorbei ist, die Rauchgastemperatur
+aber hoch bleibt, wurde die Luftzufuhr vermutlich nicht geschlossen. Auch
+dafür gibt es eine Beispiel-Automation in
+[`examples/automations.yaml`](examples/automations.yaml).
 
 ---
 
@@ -730,6 +1150,41 @@ Template-Automation.
 **Mein Kachelofen ist viel träger.**
 Dann `ignition_max_minutes` erhöhen und `burnout_rate` weniger negativ wählen
 (z. B. −0,5 °C/min). Bei Grundöfen dauert der Ausbrand oft Stunden.
+
+---
+
+## Quellen & weiterlesen
+
+Diese Integration und die README sind aus Praxisberichten und Herstellerdaten
+zusammengestellt. Die wichtigsten Quellen:
+
+- **[Ofen Schraps – elektronische Abbrandsteuerung](https://www.ofen-schraps.de/kamin-und-kachelofenbau/elektronische-abbrandsteuerung/)**
+  – kommerzielle Referenz (KBS Feuer Control ASG/ASM): Fühler im Feuerraum,
+  automatische Luftklappe, Herstellerangabe „bis zu 30 %“ Brennholzersparnis,
+  ~595 € netto zzgl. Einbau. Guter Maßstab dafür, was eine echte Regelung
+  leisten kann.
+- **[simon42 Community – Kamin-Erinnerung nachzulegen](https://community.simon42.com/t/kamin-erinnerung-nachzulegen/30026/19)**
+  – Praxis-Thread: MAX6675 in der Putzklappe nach Rücksprache mit dem
+  Schornsteinfeger, Trend-Erkennung über die Raumtemperatur, Quittier-Taste
+  gegen Dauer-Nervigkeit und Holzverbrauchsschätzung über Betriebsstunden.
+- **[Info Warren – Wood Stove Automation (Hardware)](https://infowarren.wordpress.com/2024/06/06/wood-stove-automation-hardware/)**
+  – ESP8266 + MAX6675, Linearantrieb auf der Luftklappe, Ventilator zur
+  Kühlung, Zigbee-Plug – und ein ehrlicher Erfahrungsbericht: Der erste
+  Stellantrieb war nach sechs Monaten defekt. Genau deshalb regelt FlueGuard
+  nicht.
+- **[Otto updated – Intelligente Ofensteuerung](https://www.otto.de/updated/ratgeber/automatische-ofensteuerung-im-smart-home-79071/)**
+  – Überblick über smarte Öfen: Pellet, Holz, Gas, Elektro, App-Anbindung und
+  Sicherheitsabstände. Zeigt gut, wo Hersteller schon automatisieren (Pellet)
+  und wo nicht (Holzscheit).
+- **[ESPHome MAX6675](https://esphome.io/components/sensor/max6675.html)** und
+  **[MAX31855](https://esphome.io/components/sensor/max31855.html)** –
+  Sensor-Dokumentation und Pinbelegung.
+- **[Home Assistant Trend-Integration](https://www.home-assistant.io/integrations/trend/)**
+  – für die einfache Variante ohne Bohren.
+
+Die Einsparungszahlen in dieser README sind bewusst konservativ und als
+Größenordnung gekennzeichnet. Herstellerangaben zu aktiven Regelungen lassen
+sich nicht 1:1 auf reine Überwachung übertragen.
 
 ---
 
