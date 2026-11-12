@@ -1,0 +1,4 @@
+# Test-Abhängigkeiten
+# Die Version von pytest-homeassistant-custom-component passt zu HA 2025.1.x.
+pytest>=8
+pytest-homeassistant-custom-component==0.13.205

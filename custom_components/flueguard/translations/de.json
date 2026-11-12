@@ -1,0 +1,96 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "FlueGuard einrichten",
+        "description": "Wähle den Temperatursensor, der die Rauchgastemperatur misst. Ideal ist ein Typ-K-Thermoelement an einem ESP32 via ESPHome – Hardware-Alternativen stehen in der README.",
+        "data": {
+          "source_entity": "Rauchgas-Temperatursensor",
+          "update_interval": "Abfrageintervall",
+          "notifications": "Benachrichtigungen senden",
+          "notify_service": "Notify-Service (z. B. notify.mobile_app_handy)"
+        }
+      }
+    },
+    "error": {
+      "entity_not_found": "Die gewählte Entität existiert nicht.",
+      "entity_unavailable": "Die gewählte Entität ist momentan nicht verfügbar.",
+      "not_numeric": "Die gewählte Entität liefert keinen Zahlenwert.",
+      "not_temperature": "Die gewählte Entität liefert keine Temperatur in °C oder °F.",
+      "notify_required": "Bitte einen Notify-Service angeben oder Benachrichtigungen abschalten.",
+      "invalid_thresholds": "Die Schwellwerte sind nicht aufsteigend sortiert."
+    },
+    "abort": {
+      "already_configured": "Dieser Sensor wird bereits von FlueGuard überwacht."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "FlueGuard Einstellungen",
+        "description": "Schwellwerte in °C. Reihenfolge: kalt < nachlegen < optimal von < Hauptabbrand < optimal bis < Warnung.",
+        "data": {
+          "update_interval": "Abfrageintervall",
+          "cold_threshold": "Ofen kalt unter",
+          "refuel_threshold": "Nachlegen unter",
+          "optimal_low": "Optimalband von",
+          "main_threshold": "Hauptabbrand ab",
+          "optimal_high": "Optimalband bis",
+          "warn_threshold": "Warnschwelle",
+          "ignition_max_minutes": "Anzündphase maximal",
+          "burnout_rate": "Abkühlrate für Ausbrand",
+          "notifications": "Benachrichtigungen senden",
+          "notify_service": "Notify-Service"
+        }
+      }
+    },
+    "error": {
+      "notify_required": "Bitte einen Notify-Service angeben oder Benachrichtigungen abschalten.",
+      "invalid_thresholds": "Die Schwellwerte sind nicht aufsteigend sortiert."
+    }
+  },
+  "entity": {
+    "sensor": {
+      "temperature": {
+        "name": "Rauchgastemperatur"
+      },
+      "rate_of_change": {
+        "name": "Temperaturänderung"
+      },
+      "phase": {
+        "name": "Abbrandphase",
+        "state": {
+          "idle": "Aus",
+          "ignition": "Anzünden",
+          "main": "Hauptabbrand",
+          "burnout": "Ausbrand"
+        }
+      },
+      "recommendation": {
+        "name": "Empfehlung",
+        "state": {
+          "wait": "Keine Aktivität",
+          "air_open": "Luft offen lassen",
+          "hold": "Halten – alles gut",
+          "reduce_air": "Luft drosseln",
+          "add_fuel": "Nachlegen",
+          "let_burn_out": "Ausbrennen lassen"
+        }
+      },
+      "burn_duration": {
+        "name": "Abbranddauer"
+      },
+      "peak_temperature": {
+        "name": "Spitzentemperatur"
+      }
+    },
+    "binary_sensor": {
+      "burn_active": {
+        "name": "Abbrand aktiv"
+      },
+      "overtemperature": {
+        "name": "Übertemperatur"
+      }
+    }
+  }
+}

@@ -1,0 +1,53 @@
+# Beispiel-Automationen für FlueGuard.
+# Entity-IDs anpassen. Die Integration kann Push-Nachrichten auch selbst
+# senden – diese Automationen sind für alle, die es individuell steuern wollen.
+
+automation:
+  - alias: "Ofen zu heiß"
+    description: "Push, sobald die Warnschwelle überschritten wird."
+    trigger:
+      - platform: event
+        event_type: flueguard_overtemperature
+    action:
+      - service: notify.mobile_app_handy
+        data:
+          title: "🔥 Ofen zu heiß"
+          message: >-
+            Rauchgas {{ trigger.event.data.temperature }} °C –
+            Primärluft jetzt drosseln.
+          data:
+            channel: ofen
+            importance: high
+
+  - alias: "Ofen: Luft drosseln"
+    trigger:
+      - platform: state
+        entity_id: sensor.kamin_empfehlung
+        to: "reduce_air"
+        for: "00:01:00"
+    action:
+      - service: notify.mobile_app_handy
+        data:
+          title: "Ofen: Luft drosseln"
+          message: >-
+            Rauchgas {{ states('sensor.kamin_rauchgastemperatur') }} °C.
+            Primärluft etwas schließen, Sekundärluft offen lassen.
+
+  - alias: "Ofen: Nachlegen"
+    trigger:
+      - platform: state
+        entity_id: sensor.kamin_empfehlung
+        to: "add_fuel"
+        for: "00:02:00"
+    condition:
+      - condition: state
+        entity_id: binary_sensor.kamin_abbrand_aktiv
+        state: "on"
+    action:
+      - service: notify.mobile_app_handy
+        data:
+          title: "Ofen: Nachlegen"
+          message: >-
+            Rauchgas nur noch
+            {{ states('sensor.kamin_rauchgastemperatur') }} °C.
+            Wenn noch Glut da ist: 1–2 Scheite nachlegen.

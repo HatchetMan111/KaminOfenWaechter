@@ -1,0 +1,96 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Set up FlueGuard",
+        "description": "Pick the temperature sensor that measures your flue gas. A K-type thermocouple on an ESP32 via ESPHome is ideal – see the README for hardware options.",
+        "data": {
+          "source_entity": "Flue gas temperature sensor",
+          "update_interval": "Polling interval",
+          "notifications": "Send notifications",
+          "notify_service": "Notify service (e.g. notify.mobile_app_phone)"
+        }
+      }
+    },
+    "error": {
+      "entity_not_found": "The selected entity does not exist.",
+      "entity_unavailable": "The selected entity is currently unavailable.",
+      "not_numeric": "The selected entity does not provide a numeric value.",
+      "not_temperature": "The selected entity does not provide a temperature in °C or °F.",
+      "notify_required": "Please enter a notify service or disable notifications.",
+      "invalid_thresholds": "The thresholds are not in ascending order."
+    },
+    "abort": {
+      "already_configured": "This sensor is already monitored by FlueGuard."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "FlueGuard settings",
+        "description": "Thresholds in °C. Order must be: cold < reload < optimal low < main < optimal high < warning.",
+        "data": {
+          "update_interval": "Polling interval",
+          "cold_threshold": "Stove is cold below",
+          "refuel_threshold": "Reload below",
+          "optimal_low": "Optimal band from",
+          "main_threshold": "Main burn from",
+          "optimal_high": "Optimal band to",
+          "warn_threshold": "Warning threshold",
+          "ignition_max_minutes": "Ignition phase max.",
+          "burnout_rate": "Burnout cooling rate",
+          "notifications": "Send notifications",
+          "notify_service": "Notify service"
+        }
+      }
+    },
+    "error": {
+      "notify_required": "Please enter a notify service or disable notifications.",
+      "invalid_thresholds": "The thresholds are not in ascending order."
+    }
+  },
+  "entity": {
+    "sensor": {
+      "temperature": {
+        "name": "Flue gas temperature"
+      },
+      "rate_of_change": {
+        "name": "Temperature change"
+      },
+      "phase": {
+        "name": "Combustion phase",
+        "state": {
+          "idle": "Idle",
+          "ignition": "Ignition",
+          "main": "Main burn",
+          "burnout": "Burnout"
+        }
+      },
+      "recommendation": {
+        "name": "Recommendation",
+        "state": {
+          "wait": "No activity",
+          "air_open": "Keep air open",
+          "hold": "Hold – all good",
+          "reduce_air": "Reduce air",
+          "add_fuel": "Reload",
+          "let_burn_out": "Let it burn out"
+        }
+      },
+      "burn_duration": {
+        "name": "Burn duration"
+      },
+      "peak_temperature": {
+        "name": "Peak temperature"
+      }
+    },
+    "binary_sensor": {
+      "burn_active": {
+        "name": "Burn active"
+      },
+      "overtemperature": {
+        "name": "Overtemperature"
+      }
+    }
+  }
+}

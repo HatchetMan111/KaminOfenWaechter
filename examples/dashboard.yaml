@@ -1,0 +1,46 @@
+# Beispiel-Dashboard für FlueGuard
+# Ersetze die Entity-IDs durch die deiner Instanz.
+
+type: vertical-stack
+cards:
+  - type: gauge
+    entity: sensor.kamin_rauchgastemperatur
+    name: Rauchgas
+    unit: "°C"
+    min: 0
+    max: 600
+    needle: true
+    severity:
+      green: 180
+      yellow: 350
+      red: 450
+
+  - type: markdown
+    content: >-
+      **{{ states('sensor.kamin_abbrandphase') }}** ·
+      {{ states('sensor.kamin_empfehlung') }}
+    title: Status
+
+  - type: entities
+    title: Abbrand
+    entities:
+      - entity: sensor.kamin_abbrandphase
+        name: Phase
+      - entity: sensor.kamin_empfehlung
+        name: Empfehlung
+      - entity: sensor.kamin_spitzentemperatur
+        name: Spitze
+      - entity: sensor.kamin_abbranddauer
+        name: Dauer
+      - entity: sensor.kamin_temperaturaenderung
+        name: Änderung
+      - entity: binary_sensor.kamin_abbrand_aktiv
+        name: Aktiv
+      - entity: binary_sensor.kamin_uebertemperatur
+        name: Übertemperatur
+
+  - type: history-graph
+    title: Rauchgasverlauf
+    hours_to_show: 12
+    entities:
+      - entity: sensor.kamin_rauchgastemperatur
