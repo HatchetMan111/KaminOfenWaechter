@@ -1,4 +1,4 @@
-"""Integration tests for FlueGuard using the Home Assistant test harness."""
+"""Integration tests for KaminOfenWaechter using the Home Assistant test harness."""
 
 from __future__ import annotations
 

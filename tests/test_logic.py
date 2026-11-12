@@ -1,4 +1,4 @@
-"""Unit tests for the FlueGuard combustion state machine."""
+"""Unit tests for the KaminOfenWaechter combustion state machine."""
 
 from __future__ import annotations
 

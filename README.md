@@ -1,13 +1,13 @@
-# 🔥 FlueGuard – Rauchgasüberwachung für Holzöfen
+# 🔥 KaminOfenWaechter – Rauchgasüberwachung für Holzöfen
 
-<img src="custom_components/flueguard/brand/icon.png" width="88" align="right" alt="FlueGuard">
+<img src="custom_components/flueguard/brand/icon.png" width="88" align="right" alt="KaminOfenWaechter">
 
-**FlueGuard** ist eine HACS-Integration für Home Assistant, die einen beliebigen
+**KaminOfenWaechter** ist eine HACS-Integration für Home Assistant, die einen beliebigen
 Temperatursensor an deinem Ofen (Kamin-, Kachel-, Koch- oder Pelletofen)
 auswertet und daraus erkennt, in welcher
 Abbrandphase der Ofen gerade ist – und was du mit der Luftzufuhr tun solltest.
 
-Kein Eingriff in die Feuerung, keine Typprüfung, keine Garantiefrage: FlueGuard
+Kein Eingriff in die Feuerung, keine Typprüfung, keine Garantiefrage: KaminOfenWaechter
 **misst und erinnert**, statt aktiv zu regeln. Damit ist es der sichere erste
 Schritt zur effizienten Verbrennung – für ein paar Euro Hardware.
 
@@ -16,7 +16,7 @@ Rauchgas 380 °C · Hauptabbrand
 → „Luft drosseln“ · Push aufs Handy
 ```
 
-> **Status:** v0.2.0 · getestet mit Home Assistant 2025.1 · 41 automatisierte
+> **Status:** v0.2.1 · getestet mit Home Assistant 2025.1 · 41 automatisierte
 > Tests (Logik + Integration) · MIT-Lizenz
 
 ---
@@ -24,7 +24,7 @@ Rauchgas 380 °C · Hauptabbrand
 ## Inhaltsverzeichnis
 
 1. [Das Problem](#das-problem)
-2. [Was FlueGuard macht](#was-flueguard-macht)
+2. [Was KaminOfenWaechter macht](#was-kaminofenwaechter-macht)
 3. [Einsparungspotenzial](#einsparungspotenzial)
 4. [Ofentypen im Überblick](#ofentypen-im-überblick)
 5. [Hardware: womit messen?](#hardware-womit-messen)
@@ -53,7 +53,7 @@ Rauchgas 380 °C · Hauptabbrand
 Ein **scheitbefeuerter** Kamin-, Kachel- oder Kochofen hat keine Regelung.
 Die Luftzufuhr stellst du per Hand ein – und ob das gerade richtig ist, merkst
 du erst am Feuer, am Holzverbrauch oder am Glanzruß im Schornstein.
-(Pelletöfen sind die Ausnahme: Sie regeln sich selbst. Was das für FlueGuard
+(Pelletöfen sind die Ausnahme: Sie regeln sich selbst. Was das für KaminOfenWaechter
 bedeutet, steht unter [Ofentypen](#ofentypen-im-überblick).)
 
 Die Physik dahinter ist unbarmherzig:
@@ -70,12 +70,12 @@ und regeln die Luftklappe automatisch. Systeme wie die
 liegen bei 595 € netto zzgl. Einbau und werden vom Ofenbauer eingerichtet. Das ist
 sinnvoll – aber erst, wenn man weiß, dass man es braucht.
 
-**FlueGuard ist der günstige, risikofreie Zwischenschritt:** 15–25 € Hardware,
+**KaminOfenWaechter ist der günstige, risikofreie Zwischenschritt:** 15–25 € Hardware,
 30 Minuten Montage, und du siehst zum ersten Mal, was dein Ofen eigentlich tut.
 
 ---
 
-## Was FlueGuard macht
+## Was KaminOfenWaechter macht
 
 Die Integration liest einen vorhandenen Temperatursensor (ESPHome, Zigbee,
 Bluetooth, egal) und berechnet daraus:
@@ -101,7 +101,7 @@ Dazu:
 - **Zustand überlebt Neustarts** – ein laufender Abbrand wird wieder aufgenommen.
 - **Funktioniert mit °C und °F**, rechnet intern in °C.
 
-FlueGuard regelt **nicht** die Verbrennungsluft. Das ist Absicht – siehe
+KaminOfenWaechter regelt **nicht** die Verbrennungsluft. Das ist Absicht – siehe
 [Sicherheit & Recht](#sicherheit--recht). Die optionale Ventilatorsteuerung
 bewegt ausschließlich Raumluft und greift nicht in die Feuerung ein.
 
@@ -151,7 +151,7 @@ Hardware also nach dem ersten Winter bezahlt.
   Überwachung sind realistisch **5–15 %** drin, wenn du dein Verhalten
   tatsächlich änderst. Wer schon perfekt heizt, spart 0–5 %.
 - Der größte Hebel bleibt **trockenes Holz (< 20 %), Anzünden von oben und
-  kleine Auflagen**. FlueGuard macht sichtbar, ob du das einhältst.
+  kleine Auflagen**. KaminOfenWaechter macht sichtbar, ob du das einhältst.
 - **Zu starkes Drosseln ist auch ein Fehler.** Unter ~180 °C steigt die
   Versottung, es bildet sich Glanzruß, und die Verbrennung wird schmutzig.
   Deshalb warnt die Integration in **beide** Richtungen.
@@ -174,7 +174,7 @@ Ventilatoren** – dazu weiter unten ein eigener Abschnitt.
 
 ## Ofentypen im Überblick
 
-FlueGuard ist ofentyp-unabhängig: Es liest nur einen Temperatursensor. Aber
+KaminOfenWaechter ist ofentyp-unabhängig: Es liest nur einen Temperatursensor. Aber
 Dynamik, Schwellwerte, Montageort und sinnvolle Zusatztechnik unterscheiden
 sich deutlich. Die Defaults sind auf einen **freistehenden Kaminofen mit
 Messung nah am Ofen** ausgelegt.
@@ -227,7 +227,7 @@ größten Unterschied macht.
 - Warmluftkanäle: nur zugelassene Bauteile, Brandschutzklappen und
   Temperaturgrenzen beachten. Der Ventilator darf nicht die einzige Kühlung
   sein – bei Ausfall muss die Wärme anders abgeführt werden können.
-- FlueGuard kann den Kanalventilator phasen- und temperaturabhängig steuern
+- KaminOfenWaechter kann den Kanalventilator phasen- und temperaturabhängig steuern
   (Beispiel unten).
 
 ### Kochofen / Holzherd
@@ -236,7 +236,7 @@ Kochen und Heizen in einem. Die Abgastemperatur ist hoch und schwankt stark,
 weil ständig nachgelegt oder die Herdplatte abgedeckt wird.
 
 - Sensor im Rauchrohr, nicht in der Herdplatte (das ist eine andere Temperatur).
-- FlueGuard zeigt „Herd auf Temperatur“ und „Ausbrand“ – praktisch, wenn man
+- KaminOfenWaechter zeigt „Herd auf Temperatur“ und „Ausbrand“ – praktisch, wenn man
   nebenbei kocht.
 - **Dunstabzug:** kritisch. Eine Abzugshaube kann dem Schornstein die Luft
   wegziehen und den Ofen rückwärts ziehen lassen. Nur mit
@@ -247,13 +247,13 @@ weil ständig nachgelegt oder die Herdplatte abgedeckt wird.
 ### Pelletsofen
 
 Pelletöfen bringen ihre eigene Regelung mit: Zufuhr, Luft und Zündung laufen
-automatisch, viele Modelle haben WLAN, App oder Modbus. FlueGuard ist hier
+automatisch, viele Modelle haben WLAN, App oder Modbus. KaminOfenWaechter ist hier
 **kein Ersatz**, sondern ein unabhängiger Wächter.
 
 - Sinnvoll: Abgastemperatur als Plausibilitätscheck („läuft der Ofen wie
   erwartet?“, „Feedstörung?“), Übertemperatur, Betriebsstunden.
 - Besser zuerst die Herstellerdaten in Home Assistant holen (Modbus, API,
-  Cloud) und FlueGuard nur als zweiten Kanal nutzen.
+  Cloud) und KaminOfenWaechter nur als zweiten Kanal nutzen.
 - Die Phasenlogik („nachlegen“) ist beim Pelletsofen sinnlos – der Ofen
   entscheidet selbst. Schwellwerte entsprechend hoch setzen oder die
   Empfehlungen ignorieren.
@@ -261,7 +261,7 @@ automatisch, viele Modelle haben WLAN, App oder Modbus. FlueGuard ist hier
 ### Holzvergaser / Zentralkessel
 
 Hier gibt es bereits Lambdaregelung, Pufferspeicher und meist einen
-Abgastemperaturfühler. FlueGuard kann deren Werte auslesen und visualisieren,
+Abgastemperaturfühler. KaminOfenWaechter kann deren Werte auslesen und visualisieren,
 aber keine Regelung übernehmen.
 
 - Typische Abgastemperatur: 150–250 °C.
@@ -273,19 +273,19 @@ aber keine Regelung übernehmen.
 ### Offener Kamin
 
 Kein geschlossener Feuerraum, schlechter Wirkungsgrad, hohe Emissionen. Für
-Effizienzversprechen ist das der falsche Ofen. FlueGuard kann hier nur
+Effizienzversprechen ist das der falsche Ofen. KaminOfenWaechter kann hier nur
 Sicherheitsüberwachung leisten („Feuer noch an?“), keine Einsparung.
 
 ### Gas- und Elektrokamin
 
 Ein Elektrokamin hat kein Rauchgas – hier ist nur die Raumtemperatur
 interessant. Gasöfen sind meist raumluftunabhängig und geregelt; Eingriffe
-gehören in die Hand des Fachbetriebs. FlueGuard ist dafür nicht gedacht.
+gehören in die Hand des Fachbetriebs. KaminOfenWaechter ist dafür nicht gedacht.
 
 > **Kurz gesagt:** Kaminofen = Defaults + Ventilator. Kachelofen = langsamer
 > und kühler einstellen. Heizkamin/Warmluft = Ventilatorsteuerung ist der
 > Hauptgewinn. Kochofen = Abgas + Dunstabzug-Interlock. Pellet/Kessel = lieber
-> die vorhandenen Daten lesen und FlueGuard als Wächter nutzen.
+> die vorhandenen Daten lesen und KaminOfenWaechter als Wächter nutzen.
 
 ---
 
@@ -363,13 +363,13 @@ sensor:
 ```
 
 Danach in Home Assistant: **Einstellungen → Geräte & Dienste → Integration
-hinzufügen → FlueGuard** und `sensor.kamin_rauchgas_temperatur` auswählen.
+hinzufügen → KaminOfenWaechter** und `sensor.kamin_rauchgas_temperatur` auswählen.
 Fertig.
 
 **Kalibrierung:** Thermoelemente haben typisch ±2,5 °C oder 0,75 % Toleranz.
 Für die Phasenerkennung völlig irrelevant. Wenn du absolute Werte willst:
 Vergleichsmessung mit einem Referenzthermometer bei niedriger Temperatur und
-`offset:` im ESPHome-Sensor setzen, oder die Abweichung später in FlueGuard
+`offset:` im ESPHome-Sensor setzen, oder die Abweichung später in KaminOfenWaechter
 über die Schwellwerte ausgleichen.
 
 ### ESP8266 + MAX6675 (die günstige Variante)
@@ -533,7 +533,7 @@ kannst du jederzeit auf einen Fühler in der Putzklappe aufrüsten.
   ESPHome-Bridge.
 - **Vorhandene Ofensteuerung mit Lambdasonde**: Wenn dein Ofen schon eine
   Regelung hat, lies deren Temperatur aus (Modbus/HTTP) und speise sie in
-  FlueGuard ein – dann bekommst du die Empfehlungsebene zusätzlich.
+  KaminOfenWaechter ein – dann bekommst du die Empfehlungsebene zusätzlich.
 
 > **Wichtig:** Ein auf das Rauchrohr geklemmter Oberflächenfühler misst die
 > **Rohrwand**, nicht das Gas. Die Werte liegen je nach Rohr, Dämmung und
@@ -543,7 +543,7 @@ kannst du jederzeit auf einen Fühler in der Putzklappe aufrüsten.
 
 ### Weitere Ideen (Bonus)
 
-Was sich mit FlueGuard kombinieren lässt, ohne die Integration zu ändern:
+Was sich mit KaminOfenWaechter kombinieren lässt, ohne die Integration zu ändern:
 
 - **Türkontakt am Ofen** (`binary_sensor`): erkennt „Tür offen“ und bestätigt
   die Anzündphase. Praktisch für die Automation „Licht dimmen, wenn Tür auf“.
@@ -556,7 +556,7 @@ Was sich mit FlueGuard kombinieren lässt, ohne die Integration zu ändern:
   scheinbar unerklärliche Unterschiede.
 - **Wärmemengenzähler** bei wasserführenden Öfen: Dann kannst du den
   tatsächlichen Wirkungsgrad (kWh Wärme / kg Holz) messen, statt ihn zu
-  schätzen. FlueGuard liefert die Abgasdaten dazu.
+  schätzen. KaminOfenWaechter liefert die Abgasdaten dazu.
 - **Breitband-Lambdasonde** (nur für Fortgeschrittene): echte
   Verbrennungsluftzahl statt Temperatur-Proxy. Teuer, kalibrierbedürftig und
   für Kaminöfen kaum als Bausatz verfügbar – aber die „richtige“ Lösung, wenn
@@ -634,7 +634,7 @@ und passe die Schwellwerte an:
    nachdichten.
 
 8. **Erste Messung dokumentieren.** 2–3 Abbrände aufzeichnen, dann Schwellwerte
-   in FlueGuard anpassen.
+   in KaminOfenWaechter anpassen.
 
 ### Wartung
 
@@ -695,12 +695,12 @@ einen MOSFET oder ein Treibermodul. Der ESP liefert nur das PWM-Signal.
 
 ### Eingebaute Ventilator-Entität (empfohlen)
 
-Seit v0.2.0 bringt FlueGuard die Ventilatorsteuerung selbst mit. Du brauchst
+Seit v0.2.0 bringt KaminOfenWaechter die Ventilatorsteuerung selbst mit. Du brauchst
 **keine Automationen** mehr: In den Optionen sagst du, welche `fan.*`- oder
-`switch.*`-Entität gesteuert werden soll, und FlueGuard übernimmt Rampe,
+`switch.*`-Entität gesteuert werden soll, und KaminOfenWaechter übernimmt Rampe,
 Nachtmodus, Raumtemperatur-Begrenzung und Handsteuerung.
 
-**Aktivieren:** Einstellungen → Geräte & Dienste → FlueGuard → **Konfigurieren**
+**Aktivieren:** Einstellungen → Geräte & Dienste → KaminOfenWaechter → **Konfigurieren**
 → **Ofenventilator** → „Ventilatorsteuerung aktivieren“ anhaken und die
 Ziel-Entität wählen. Beim ersten Einrichten geht das direkt über die Checkbox
 „Auch einen Ofenventilator steuern“.
@@ -761,7 +761,7 @@ Ein vergessener Boost soll den Ofen nicht dauerhaft kalt blasen.
 | `override_until` | Zeitstempel, wann die Handsteuerung endet |
 
 **Wichtig:** Wird die Ventilatorsteuerung in den Optionen abgeschaltet, entfernt
-FlueGuard die Entität beim nächsten Reload und räumt auch den Registry-Eintrag
+KaminOfenWaechter die Entität beim nächsten Reload und räumt auch den Registry-Eintrag
 auf. Die Ziel-Entität selbst wird nie gelöscht.
 
 ### Die Steuerlogik
@@ -861,7 +861,7 @@ durch `switch.turn_on` und lässt die Rampe weg.
 - **Überhitzungsschutz:** Bei zu heißem Ofen kann der Ventilator die
   Oberflächentemperatur senken, bevor der Ofen Schaden nimmt.
 
-Der schöne Nebeneffekt: Mit FlueGuard kannst du den Effekt **messen** –
+Der schöne Nebeneffekt: Mit KaminOfenWaechter kannst du den Effekt **messen** –
 Rauchgastemperatur mit und ohne Ventilator vergleichen, und du siehst sofort,
 ob deine Einstellung wirklich etwas bringt.
 
@@ -869,7 +869,7 @@ ob deine Einstellung wirklich etwas bringt.
 
 ## Sicherheit & Recht
 
-**FlueGuard ist eine Anzeige, keine Regelung.** Das ist kein Zufall:
+**KaminOfenWaechter ist eine Anzeige, keine Regelung.** Das ist kein Zufall:
 
 - Ein Eingriff in die Luftführung eines typgeprüften Ofens (DIN EN 13240 /
   DIN EN 13229) berührt die Bauartgenehmigung. Das kann die Betriebserlaubnis,
@@ -913,9 +913,9 @@ Weitere Punkte:
 
 1. **HACS → Integrationen → ⋮ → Benutzerdefinierte Repositories**
 2. URL dieses Repositories eintragen, Kategorie **Integration**
-3. **FlueGuard** suchen → **Herunterladen**
+3. **KaminOfenWaechter** suchen → **Herunterladen**
 4. Home Assistant neu starten
-5. **Einstellungen → Geräte & Dienste → Integration hinzufügen → FlueGuard**
+5. **Einstellungen → Geräte & Dienste → Integration hinzufügen → KaminOfenWaechter**
 
 ### Variante B: manuell
 
@@ -947,7 +947,7 @@ HACS zeigt Updates automatisch an. Nach dem Update Home Assistant neu starten.
 
 ### Optionen (nachträglich änderbar)
 
-Unter **Einstellungen → Geräte & Dienste → FlueGuard → Konfigurieren** öffnet
+Unter **Einstellungen → Geräte & Dienste → KaminOfenWaechter → Konfigurieren** öffnet
 sich ein Menü mit **„Schwellwerte und Benachrichtigungen“** und
 **„Ofenventilator“**. Beide Bereiche lassen sich unabhängig ändern; die jeweils
 anderen Optionen bleiben erhalten.
@@ -1239,7 +1239,7 @@ Weil ein Eingriff in die Feuerung die Typprüfung berührt und eine fehlerhafte
 Automatik CO erzeugen kann. Wer das trotzdem bauen will, braucht: fail-safe
 öffnende Mechanik, harte Temperaturgrenzen im ESP (nicht nur in HA),
 Watchdog, mechanische Endanschläge und die Freigabe vom Ofenhersteller.
-FlueGuard liefert dafür die Sensorik und die Phasenlogik – die Aktorik der
+KaminOfenWaechter liefert dafür die Sensorik und die Phasenlogik – die Aktorik der
 Luftklappe ist bewusst nicht enthalten.
 
 **Kann ich mehrere Öfen überwachen?**
@@ -1281,7 +1281,7 @@ zusammengestellt. Die wichtigsten Quellen:
 - **[Info Warren – Wood Stove Automation (Hardware)](https://infowarren.wordpress.com/2024/06/06/wood-stove-automation-hardware/)**
   – ESP8266 + MAX6675, Linearantrieb auf der Luftklappe, Ventilator zur
   Kühlung, Zigbee-Plug – und ein ehrlicher Erfahrungsbericht: Der erste
-  Stellantrieb war nach sechs Monaten defekt. Genau deshalb regelt FlueGuard
+  Stellantrieb war nach sechs Monaten defekt. Genau deshalb regelt KaminOfenWaechter
   die Luftklappe nicht – der Ventilator bewegt nur Raumluft.
 - **[Otto updated – Intelligente Ofensteuerung](https://www.otto.de/updated/ratgeber/automatische-ofensteuerung-im-smart-home-79071/)**
   – Überblick über smarte Öfen: Pellet, Holz, Gas, Elektro, App-Anbindung und
@@ -1308,7 +1308,7 @@ Wenn du das Repo auf GitHub stellst, sind nur wenige Dinge anzupassen:
    - `documentation` und `issue_tracker`: deine Repo-URL
 2. **Repo-Themen** setzen: `home-assistant`, `hacs`, `hacs-integration`,
    `wood-stove`, `kaminofen`, `flue-gas`.
-3. **Release anlegen** (`v0.2.0`), damit HACS Updates erkennt.
+3. **Release anlegen** (`v0.2.1`), damit HACS Updates erkennt.
 4. Optional: In HACS als Standard-Repository vorschlagen
    (`hacs/default` Pull Request) – dann finden es andere ohne URL.
 

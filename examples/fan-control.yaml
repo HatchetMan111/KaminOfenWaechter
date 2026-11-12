@@ -1,12 +1,12 @@
 # Beispiel: Ventilator folgt dem Abbrand
 #
 # Hinweis: Für den Normalfall braucht man diese Datei nicht mehr. Seit v0.2.0
-# hat FlueGuard eine eingebaute fan-Entität (Optionen -> Ofenventilator) mit
+# hat KaminOfenWaechter eine eingebaute fan-Entität (Optionen -> Ofenventilator) mit
 # Rampe, Nachtmodus, Raumtemperatur-Grenze und Handsteuerung. Diese YAML-
 # Variante ist für eigene Logik (Fensterkontakte, PV, Wärmepumpe ...).
 #
 # Voraussetzungen:
-#   - FlueGuard ist eingerichtet.
+#   - KaminOfenWaechter ist eingerichtet.
 #   - fan.ofen_ventilator existiert und unterstützt fan.set_percentage.
 #     Bei einem einfachen Smart Plug stattdessen switch.turn_on/off nutzen
 #     und die Rampe weglassen.

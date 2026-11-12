@@ -1,4 +1,4 @@
-"""Binary sensor entities for FlueGuard."""
+"""Binary sensor entities for KaminOfenWaechter."""
 
 from __future__ import annotations
 
@@ -20,7 +20,7 @@ async def async_setup_entry(
     entry: ConfigEntry,
     async_add_entities: AddEntitiesCallback,
 ) -> None:
-    """Set up the FlueGuard binary sensors."""
+    """Set up the KaminOfenWaechter binary sensors."""
     coordinator: FlueGuardCoordinator = entry.runtime_data
     async_add_entities(
         [
@@ -31,7 +31,7 @@ async def async_setup_entry(
 
 
 class FlueGuardBinarySensor(FlueGuardEntity, BinarySensorEntity):
-    """Base class for FlueGuard binary sensors."""
+    """Base class for KaminOfenWaechter binary sensors."""
 
 
 class BurnActiveBinarySensor(FlueGuardBinarySensor):

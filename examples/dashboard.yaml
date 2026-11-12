@@ -1,4 +1,4 @@
-# Beispiel-Dashboard für FlueGuard
+# Beispiel-Dashboard für KaminOfenWaechter
 # Ersetze die Entity-IDs durch die deiner Instanz.
 
 type: vertical-stack
@@ -46,7 +46,7 @@ cards:
       - entity: sensor.kamin_rauchgastemperatur
 
   # Optional: Wärmeverteilung. Mit der eingebauten Ventilatorsteuerung ist
-  # fan.kamin_ofenventilator die FlueGuard-Entität; fan.ofen_ventilator wäre
+  # fan.kamin_ofenventilator die KaminOfenWaechter-Entität; fan.ofen_ventilator wäre
   # das gesteuerte Ziel.
   - type: entities
     title: Wärmeverteilung

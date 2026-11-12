@@ -1,4 +1,4 @@
-"""Data coordinator for FlueGuard."""
+"""Data coordinator for KaminOfenWaechter."""
 
 from __future__ import annotations
 

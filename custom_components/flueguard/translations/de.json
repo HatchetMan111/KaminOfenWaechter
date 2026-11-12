@@ -2,7 +2,7 @@
   "config": {
     "step": {
       "user": {
-        "title": "FlueGuard einrichten",
+        "title": "KaminOfenWaechter einrichten",
         "description": "Wähle den Temperatursensor, der die Rauchgastemperatur misst. Ideal ist ein Typ-K-Thermoelement an einem ESP32 via ESPHome – Hardware-Alternativen stehen in der README.",
         "data": {
           "source_entity": "Rauchgas-Temperatursensor",
@@ -14,7 +14,7 @@
       },
       "fan": {
         "title": "Ofenventilator",
-        "description": "Optional. FlueGuard steuert eine vorhandene Ventilator- oder Schalter-Entität nach der Rauchgastemperatur. Der Ventilator darf nur Raumluft bewegen, niemals Verbrennungsluft.",
+        "description": "Optional. KaminOfenWaechter steuert eine vorhandene Ventilator- oder Schalter-Entität nach der Rauchgastemperatur. Der Ventilator darf nur Raumluft bewegen, niemals Verbrennungsluft.",
         "data": {
           "fan_enabled": "Ventilatorsteuerung aktivieren",
           "fan_entity": "Ventilator- oder Schalter-Entität",
@@ -45,13 +45,13 @@
       "fan_required": "Bitte eine Ventilator-/Schalter-Entität wählen oder die Ventilatorsteuerung abschalten."
     },
     "abort": {
-      "already_configured": "Dieser Sensor wird bereits von FlueGuard überwacht."
+      "already_configured": "Dieser Sensor wird bereits von KaminOfenWaechter überwacht."
     }
   },
   "options": {
     "step": {
       "init": {
-        "title": "FlueGuard Einstellungen",
+        "title": "KaminOfenWaechter Einstellungen",
         "description": "Was möchtest du ändern?",
         "menu_options": {
           "general": "Schwellwerte und Benachrichtigungen",
@@ -77,7 +77,7 @@
       },
       "fan": {
         "title": "Ofenventilator",
-        "description": "Ventilator-Entität leer lassen, um die Ventilatorsteuerung abzuschalten. FlueGuard bewegt nur Raumluft – niemals Verbrennungsluft.",
+        "description": "Ventilator-Entität leer lassen, um die Ventilatorsteuerung abzuschalten. KaminOfenWaechter bewegt nur Raumluft – niemals Verbrennungsluft.",
         "data": {
           "fan_enabled": "Ventilatorsteuerung aktivieren",
           "fan_entity": "Ventilator- oder Schalter-Entität",

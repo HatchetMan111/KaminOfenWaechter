@@ -1,4 +1,4 @@
-"""The FlueGuard integration."""
+"""The KaminOfenWaechter integration."""
 
 from __future__ import annotations
 
@@ -10,7 +10,7 @@ from .coordinator import FlueGuardCoordinator
 
 
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
-    """Set up FlueGuard from a config entry."""
+    """Set up KaminOfenWaechter from a config entry."""
     coordinator = FlueGuardCoordinator(hass, entry)
     await coordinator.async_load_stored()
     await coordinator.async_config_entry_first_refresh()

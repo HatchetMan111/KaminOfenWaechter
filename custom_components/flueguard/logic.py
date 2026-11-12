@@ -1,4 +1,4 @@
-"""Pure combustion-phase logic for FlueGuard.
+"""Pure combustion-phase logic for KaminOfenWaechter.
 
 This module deliberately has **no** Home Assistant imports so that the
 state machine can be unit tested without a running Home Assistant instance.

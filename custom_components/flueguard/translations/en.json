@@ -2,7 +2,7 @@
   "config": {
     "step": {
       "user": {
-        "title": "Set up FlueGuard",
+        "title": "Set up KaminOfenWaechter",
         "description": "Pick the temperature sensor that measures your flue gas. A K-type thermocouple on an ESP32 via ESPHome is ideal – see the README for hardware options.",
         "data": {
           "source_entity": "Flue gas temperature sensor",
@@ -14,7 +14,7 @@
       },
       "fan": {
         "title": "Stove fan",
-        "description": "Optional. FlueGuard controls an existing fan or switch entity based on the flue gas temperature. The fan must only move room air, never combustion air.",
+        "description": "Optional. KaminOfenWaechter controls an existing fan or switch entity based on the flue gas temperature. The fan must only move room air, never combustion air.",
         "data": {
           "fan_enabled": "Enable fan control",
           "fan_entity": "Fan or switch entity",
@@ -45,13 +45,13 @@
       "fan_required": "Please select a fan or switch entity, or disable fan control."
     },
     "abort": {
-      "already_configured": "This sensor is already monitored by FlueGuard."
+      "already_configured": "This sensor is already monitored by KaminOfenWaechter."
     }
   },
   "options": {
     "step": {
       "init": {
-        "title": "FlueGuard settings",
+        "title": "KaminOfenWaechter settings",
         "description": "What do you want to change?",
         "menu_options": {
           "general": "Thresholds and notifications",
@@ -77,7 +77,7 @@
       },
       "fan": {
         "title": "Stove fan",
-        "description": "Leave the fan entity empty to disable fan control. FlueGuard only moves room air – it never controls combustion air.",
+        "description": "Leave the fan entity empty to disable fan control. KaminOfenWaechter only moves room air – it never controls combustion air.",
         "data": {
           "fan_enabled": "Enable fan control",
           "fan_entity": "Fan or switch entity",

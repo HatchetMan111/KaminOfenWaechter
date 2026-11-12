@@ -1,4 +1,4 @@
-"""Constants for the FlueGuard integration."""
+"""Constants for the KaminOfenWaechter integration."""
 
 from __future__ import annotations
 
@@ -7,7 +7,7 @@ from datetime import timedelta
 from .logic import FanSettings
 
 DOMAIN = "flueguard"
-NAME = "FlueGuard"
+NAME = "KaminOfenWaechter"
 PLATFORMS = ["sensor", "binary_sensor", "fan"]
 
 # Configuration

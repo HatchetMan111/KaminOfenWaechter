@@ -3,7 +3,7 @@
 # 1. In ESPHome als neues Gerät anlegen (oder diese Datei als YAML einfügen).
 # 2. Secrets für WLAN/API/OTA anpassen.
 # 3. Flashen, Sensor in Home Assistant prüfen.
-# 4. In FlueGuard als Quelle auswählen.
+# 4. In KaminOfenWaechter als Quelle auswählen.
 
 esphome:
   name: kamin-rauchgas

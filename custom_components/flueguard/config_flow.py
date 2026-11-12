@@ -1,4 +1,4 @@
-"""Config and options flow for FlueGuard."""
+"""Config and options flow for KaminOfenWaechter."""
 
 from __future__ import annotations
 

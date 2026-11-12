@@ -1,4 +1,4 @@
-"""Optional fan entity for FlueGuard.
+"""Optional fan entity for KaminOfenWaechter.
 
 The fan moves room air around the stove. It never touches the combustion air,
 so it cannot change the burn itself - the worst case is a colder room or a
@@ -247,7 +247,7 @@ class FlueGuardFan(FlueGuardEntity, FanEntity):
         target = self._target
         if self.entity_id is not None and target == self.entity_id:
             _LOGGER.warning(
-                "FlueGuard: Ventilator-Ziel darf nicht die FlueGuard-Entität selbst sein"
+                "KaminOfenWaechter: Ventilator-Ziel darf nicht die KaminOfenWaechter-Entität selbst sein"
             )
             return
         state = self.hass.states.get(target)
@@ -266,7 +266,7 @@ class FlueGuardFan(FlueGuardEntity, FanEntity):
 
         if not target.startswith("fan."):
             _LOGGER.warning(
-                "FlueGuard: %s ist weder fan.* noch switch.*", target
+                "KaminOfenWaechter: %s ist weder fan.* noch switch.*", target
             )
             return
 

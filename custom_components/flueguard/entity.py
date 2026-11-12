@@ -1,4 +1,4 @@
-"""Base entity for FlueGuard."""
+"""Base entity for KaminOfenWaechter."""
 
 from __future__ import annotations
 
@@ -11,7 +11,7 @@ from .coordinator import FlueGuardCoordinator
 
 
 class FlueGuardEntity(CoordinatorEntity[FlueGuardCoordinator]):
-    """Common device info and naming for all FlueGuard entities."""
+    """Common device info and naming for all KaminOfenWaechter entities."""
 
     _attr_has_entity_name = True
 
