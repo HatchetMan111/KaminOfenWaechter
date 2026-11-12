@@ -8,3 +8,6 @@ venv/
 *.egg-info/
 dist/
 build/
+
+# Frontend build inputs/outputs
+frontend/node_modules/

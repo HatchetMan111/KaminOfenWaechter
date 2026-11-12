@@ -41,6 +41,7 @@
       "notify_required": "Bitte einen Notify-Service angeben oder Benachrichtigungen abschalten.",
       "invalid_thresholds": "Die Schwellwerte sind nicht aufsteigend sortiert.",
       "fan_not_found": "Die gewählte Ventilator-/Schalter-Entität existiert nicht.",
+      "fan_self": "Die KaminOfenWaechter-Ventilator-Entität kann sich nicht selbst steuern – bitte den echten Ventilator oder Schalter wählen.",
       "invalid_fan_settings": "Die Ventilator-Einstellungen sind nicht plausibel: aus ≤ min < max, und die Grenzen dürfen die Maximaldrehzahl nicht überschreiten.",
       "fan_required": "Bitte eine Ventilator-/Schalter-Entität wählen oder die Ventilatorsteuerung abschalten."
     },
@@ -100,6 +101,7 @@
       "notify_required": "Bitte einen Notify-Service angeben oder Benachrichtigungen abschalten.",
       "invalid_thresholds": "Die Schwellwerte sind nicht aufsteigend sortiert.",
       "fan_not_found": "Die gewählte Ventilator-/Schalter-Entität existiert nicht.",
+      "fan_self": "Die KaminOfenWaechter-Ventilator-Entität kann sich nicht selbst steuern – bitte den echten Ventilator oder Schalter wählen.",
       "invalid_fan_settings": "Die Ventilator-Einstellungen sind nicht plausibel: aus ≤ min < max, und die Grenzen dürfen die Maximaldrehzahl nicht überschreiten.",
       "fan_required": "Bitte eine Ventilator-/Schalter-Entität wählen oder die Ventilatorsteuerung abschalten."
     }

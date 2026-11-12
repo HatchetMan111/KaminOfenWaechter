@@ -2,11 +2,38 @@
 
 from __future__ import annotations
 
+from pathlib import Path
+from typing import Any
+
+from homeassistant.components.http import StaticPathConfig
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 
 from .const import PLATFORMS
 from .coordinator import FlueGuardCoordinator
+
+CARD_URL_PATH = "/kaminofenwaechter_card"
+
+
+async def async_setup(hass: HomeAssistant, config: dict[str, Any]) -> bool:
+    """Serve the bundled Lovelace card, also without configured entries."""
+    await _async_register_card(hass)
+    return True
+
+
+async def _async_register_card(hass: HomeAssistant) -> None:
+    """Serve custom_components/flueguard/www under /kaminofenwaechter_card."""
+    if hass.http is None:  # stripped-down environments (e.g. unit tests)
+        return
+    await hass.http.async_register_static_paths(
+        [
+            StaticPathConfig(
+                CARD_URL_PATH,
+                str(Path(__file__).parent / "www"),
+                cache_headers=False,
+            )
+        ]
+    )
 
 
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:

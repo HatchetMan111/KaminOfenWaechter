@@ -5,7 +5,6 @@ from __future__ import annotations
 from typing import Any
 
 import voluptuous as vol
-
 from homeassistant.config_entries import ConfigEntry, ConfigFlow, OptionsFlow
 from homeassistant.const import (
     ATTR_UNIT_OF_MEASUREMENT,
@@ -293,10 +292,18 @@ def _notify_ok(values: dict[str, Any]) -> bool:
     )
 
 
+def _fan_is_self(hass: HomeAssistant, entity_id: str) -> bool:
+    """Return True if the selected target is a fan entity of this integration."""
+    registration = er.async_get(hass).async_get(entity_id)
+    return registration is not None and registration.platform == DOMAIN
+
+
 def _fan_entity_ok(hass: HomeAssistant, entity_id: str) -> bool:
     if not entity_id:
         return True
     if not (entity_id.startswith("fan.") or entity_id.startswith("switch.")):
+        return False
+    if _fan_is_self(hass, entity_id):
         return False
     if hass.states.get(entity_id) is not None:
         return True
@@ -456,6 +463,10 @@ class FlueGuardConfigFlow(ConfigFlow, domain=DOMAIN):
             values = _fan_values(user_input)
             if values[CONF_FAN_ENABLED] and not values[CONF_FAN_ENTITY]:
                 errors["base"] = "fan_required"
+            elif values[CONF_FAN_ENABLED] and _fan_is_self(
+                self.hass, values[CONF_FAN_ENTITY]
+            ):
+                errors["base"] = "fan_self"
             elif values[CONF_FAN_ENABLED] and not _fan_entity_ok(
                 self.hass, values[CONF_FAN_ENTITY]
             ):
@@ -531,6 +542,10 @@ class FlueGuardOptionsFlow(OptionsFlow):
             values = _fan_values(user_input)
             if values[CONF_FAN_ENABLED] and not values[CONF_FAN_ENTITY]:
                 errors["base"] = "fan_required"
+            elif values[CONF_FAN_ENABLED] and _fan_is_self(
+                self.hass, values[CONF_FAN_ENTITY]
+            ):
+                errors["base"] = "fan_self"
             elif values[CONF_FAN_ENABLED] and not _fan_entity_ok(
                 self.hass, values[CONF_FAN_ENTITY]
             ):

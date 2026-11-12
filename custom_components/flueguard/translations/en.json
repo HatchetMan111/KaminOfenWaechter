@@ -41,6 +41,7 @@
       "notify_required": "Please enter a notify service or disable notifications.",
       "invalid_thresholds": "The thresholds are not in ascending order.",
       "fan_not_found": "The selected fan/switch entity does not exist.",
+      "fan_self": "The KaminOfenWaechter fan entity cannot control itself – pick the real fan or switch.",
       "invalid_fan_settings": "The fan settings are not plausible: off ≤ min < max, and the caps must not exceed the maximum speed.",
       "fan_required": "Please select a fan or switch entity, or disable fan control."
     },
@@ -100,6 +101,7 @@
       "notify_required": "Please enter a notify service or disable notifications.",
       "invalid_thresholds": "The thresholds are not in ascending order.",
       "fan_not_found": "The selected fan/switch entity does not exist.",
+      "fan_self": "The KaminOfenWaechter fan entity cannot control itself – pick the real fan or switch.",
       "invalid_fan_settings": "The fan settings are not plausible: off ≤ min < max, and the caps must not exceed the maximum speed.",
       "fan_required": "Please select a fan or switch entity, or disable fan control."
     }

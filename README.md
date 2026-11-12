@@ -16,8 +16,8 @@ Rauchgas 380 °C · Hauptabbrand
 → „Luft drosseln“ · Push aufs Handy
 ```
 
-> **Status:** v0.2.1 · getestet mit Home Assistant 2025.1 · 41 automatisierte
-> Tests (Logik + Integration) · MIT-Lizenz
+> **Status:** v0.3.0 · getestet mit Home Assistant 2025.1 · 41 automatisierte
+> Tests (Logik + Integration) · eigene React/Vite-Dashboard-Card · MIT-Lizenz
 
 ---
 
@@ -39,12 +39,13 @@ Rauchgas 380 °C · Hauptabbrand
 9. [Installation über HACS](#installation-über-hacs)
 10. [Einrichtung](#einrichtung)
 11. [Entitäten & Events](#entitäten--events)
-12. [Beispiel-Automationen](#beispiel-automationen)
-13. [Wie die Erkennung funktioniert](#wie-die-erkennung-funktioniert)
-14. [Tuning & FAQ](#tuning--faq)
-15. [Quellen & weiterlesen](#quellen--weiterlesen)
-16. [Vor dem Veröffentlichen](#vor-dem-veröffentlichen)
-17. [Lizenz & Haftung](#lizenz--haftung)
+12. [Dashboard-Card (Lovelace)](#dashboard-card-lovelace)
+13. [Beispiel-Automationen](#beispiel-automationen)
+14. [Wie die Erkennung funktioniert](#wie-die-erkennung-funktioniert)
+15. [Tuning & FAQ](#tuning--faq)
+16. [Quellen & weiterlesen](#quellen--weiterlesen)
+17. [Vor dem Veröffentlichen](#vor-dem-veröffentlichen)
+18. [Lizenz & Haftung](#lizenz--haftung)
 
 ---
 
@@ -97,6 +98,9 @@ Dazu:
   – mit Cooldown, damit das Handy nicht nervt.
 - **Eingebaute Ventilatorsteuerung** (optional): Rampe, Nachtmodus,
   Raumtemperatur-Begrenzung und manueller Boost – ohne eine einzige Zeile YAML.
+- **Eigene Lovelace-Card** (React + Vite): Gauge mit Temperaturbändern, Abbrandphase,
+  Empfehlung, Verlaufs-Chart und Ventilator-Steuerung – findet ihre Entitäten
+  automatisch, hell- und dunkelfähig.
 - **Events** auf dem HA-Bus für eigene Automationen.
 - **Zustand überlebt Neustarts** – ein laufender Abbrand wird wieder aufgenommen.
 - **Funktioniert mit °C und °F**, rechnet intern in °C.
@@ -726,9 +730,11 @@ normal bedienbar, solange keine Handsteuerung aktiv ist.
 | `boost` | 100 % für 20 Minuten, danach zurück auf `auto` |
 | `off` | 0 % für die eingestellte Dauer, danach zurück auf `auto` |
 | Prozentwert setzen | Handsteuerung für die eingestellte Dauer (Default 60 min) |
+| `fan.turn_on` | zurück auf Automatik (beendet eine Handsteuerung) |
 | `fan.turn_off` | wie Preset `off` – kein dauerhaftes Abschalten |
 
-Nach Ablauf der Handsteuerung übernimmt die Automatik wieder. Das ist Absicht:
+Nach Ablauf der Handsteuerung übernimmt die Automatik **exakt zum Ablaufzeitpunkt**
+wieder (nicht erst beim nächsten Messintervall). Das ist Absicht:
 Ein vergessener Boost soll den Ofen nicht dauerhaft kalt blasen.
 
 **Optionen**
@@ -1027,6 +1033,62 @@ Alle Events landen auf dem HA-Bus und enthalten `entry_id`, `source_entity`,
 
 ---
 
+## Dashboard-Card (Lovelace)
+
+KaminOfenWaechter bringt eine eigene Dashboard-Card mit – gebaut mit React und
+Vite, ausgeliefert als ein einziges ES-Modul in der Integration. Sie zeigt:
+
+- **Gauge** mit Temperaturbändern (kalt / anwärmen / optimal / zu heiß / Warnbereich),
+  Nadel und Peak-Marker
+- **Abbrandphase** als farbiger Chip und die aktuelle **Empfehlung** mit Hinweistext
+- **Spitzentemperatur**, **Abbranddauer** (läuft live weiter) und Status
+- **Verlaufs-Chart** der Rauchgastemperatur (Standard: 12 h, optional)
+- **Ventilator-Steuerung**: Drehzahl-Ring, Automatik/Boost/Aus-Buttons,
+  Grund der aktuellen Drehzahl und Countdown der Handsteuerung
+- **Alarm-Rahmen** bei Übertemperatur
+
+Die Card folgt dem Light/Dark-Theme von Home Assistant und steht im
+Karten-Editor zur Verfügung. Entitäten werden automatisch über die
+Entity-Registry gefunden (`platform: flueguard`) – konfigurieren musst du
+normalerweise nichts.
+
+### Card aktivieren
+
+1. Nach der Integration-Installation eine **Lovelace-Ressource** anlegen:
+   Einstellungen → Dashboards → **Ressourcen** → Hinzufügen.
+   URL: `/kaminofenwaechter_card/kaminofenwaechter-card.js` · Typ: *JavaScript-Modul*.
+   (Die Datei wird von der Integration selbst unter dieser URL bereitgestellt –
+   kein Kopieren nach `config/www` nötig.)
+2. Dashboard → **Karte hinzufügen** → **Benutzerdefiniert: KaminOfenWaechter**.
+3. Fertig. Für mehrere Öfen einfach die Card mehrfach hinzufügen – jede Instanz
+   findet automatisch ihren eigenen Entitäten-Satz (oder wähle im Editor
+   manuell eine Temperatur-Entität aus).
+
+### Optionen der Card
+
+| Option | Default | Bedeutung |
+|---|---|---|
+| `entity` | automatisch | Temperatur-Entität, um die passende Instanz zu wählen |
+| `entities` | automatisch | einzelne Entitäten manuell überschreiben (Map, z. B. `stove_fan: fan.xy`) |
+| `gauge_max` | `600` | Skalenende des Gauges in °C |
+| `hours_to_show` | `12` | Zeitraum des Verlaufs-Charts |
+| `show_history` | `true` | Verlaufs-Chart anzeigen |
+| `show_fan` | `true` | Ventilator-Block anzeigen |
+| `thresholds` | wie die Integration | Schwellwerte der Bänder (`cold`, `refuel`, `optimal_low`, `optimal_high`, `warn`) |
+
+### Card selbst bauen
+
+Der Quellcode liegt in [`frontend/`](frontend/). Build:
+
+```bash
+cd frontend
+npm install
+npm run build          # landet direkt in custom_components/flueguard/www/
+npm run watch          # während der Entwicklung
+```
+
+---
+
 ## Beispiel-Automationen
 
 Die vollständigen Dateien liegen unter
@@ -1114,32 +1176,13 @@ automation:
 
 ### Dashboard
 
-Eine fertige Karte liegt in [`examples/dashboard.yaml`](examples/dashboard.yaml):
+**Empfehlung:** die mitgelieferte Lovelace-Card (siehe
+[Dashboard-Card](#dashboard-card-lovelace)). Sie zeigt Gauge, Phase, Empfehlung,
+Verlauf und Ventilatorsteuerung in einem Element und findet ihre Entitäten
+automatisch.
 
-```yaml
-type: vertical-stack
-cards:
-  - type: gauge
-    entity: sensor.kamin_rauchgastemperatur
-    name: Rauchgas
-    min: 0
-    max: 600
-    severity:
-      green: 180
-      yellow: 350
-      red: 450
-  - type: entities
-    entities:
-      - sensor.kamin_abbrandphase
-      - sensor.kamin_empfehlung
-      - sensor.kamin_spitzentemperatur
-      - sensor.kamin_abbranddauer
-      - binary_sensor.kamin_uebertemperatur
-  - type: history-graph
-    entities:
-      - sensor.kamin_rauchgastemperatur
-    hours_to_show: 12
-```
+Wer lieber Standard-Karten nutzt: eine fertige YAML-Variante liegt in
+[`examples/dashboard.yaml`](examples/dashboard.yaml).
 
 ### Statistik: Holzverbrauch schätzen
 
@@ -1308,7 +1351,7 @@ Wenn du das Repo auf GitHub stellst, sind nur wenige Dinge anzupassen:
    - `documentation` und `issue_tracker`: deine Repo-URL
 2. **Repo-Themen** setzen: `home-assistant`, `hacs`, `hacs-integration`,
    `wood-stove`, `kaminofen`, `flue-gas`.
-3. **Release anlegen** (`v0.2.1`), damit HACS Updates erkennt.
+3. **Release anlegen** (`v0.3.0`), damit HACS Updates erkennt.
 4. Optional: In HACS als Standard-Repository vorschlagen
    (`hacs/default` Pull Request) – dann finden es andere ohne URL.
 

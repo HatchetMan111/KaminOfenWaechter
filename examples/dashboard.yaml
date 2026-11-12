@@ -1,55 +1,71 @@
 # Beispiel-Dashboard für KaminOfenWaechter
-# Ersetze die Entity-IDs durch die deiner Instanz.
+#
+# Empfohlen: die mitgelieferte Lovelace-Card. Ressource einmalig anlegen
+# (Einstellungen → Dashboards → Ressourcen):
+#   /kaminofenwaechter_card/kaminofenwaechter-card.js   (JavaScript-Modul)
+# Danach einfach eine Karte "Benutzerdefiniert: KaminOfenWaechter" hinzufügen –
+# die Entitäten werden automatisch gefunden.
 
-type: vertical-stack
-cards:
-  - type: gauge
-    entity: sensor.kamin_rauchgastemperatur
-    name: Rauchgas
-    unit: "°C"
-    min: 0
-    max: 600
-    needle: true
-    severity:
-      green: 180
-      yellow: 350
-      red: 450
+type: custom:kaminofenwaechter-card
+# Optional (Defaults):
+# gauge_max: 600
+# hours_to_show: 12
+# show_history: true
+# show_fan: true
 
-  - type: markdown
-    content: >-
-      **{{ states('sensor.kamin_abbrandphase') }}** ·
-      {{ states('sensor.kamin_empfehlung') }}
-    title: Status
-
-  - type: entities
-    title: Abbrand
-    entities:
-      - entity: sensor.kamin_abbrandphase
-        name: Phase
-      - entity: sensor.kamin_empfehlung
-        name: Empfehlung
-      - entity: sensor.kamin_spitzentemperatur
-        name: Spitze
-      - entity: sensor.kamin_abbranddauer
-        name: Dauer
-      - entity: sensor.kamin_temperaturaenderung
-        name: Änderung
-      - entity: binary_sensor.kamin_abbrand_aktiv
-        name: Aktiv
-      - entity: binary_sensor.kamin_uebertemperatur
-        name: Übertemperatur
-
-  - type: history-graph
-    title: Rauchgasverlauf
-    hours_to_show: 12
-    entities:
-      - entity: sensor.kamin_rauchgastemperatur
-
-  # Optional: Wärmeverteilung. Mit der eingebauten Ventilatorsteuerung ist
-  # fan.kamin_ofenventilator die KaminOfenWaechter-Entität; fan.ofen_ventilator wäre
-  # das gesteuerte Ziel.
-  - type: entities
-    title: Wärmeverteilung
-    entities:
-      - entity: fan.kamin_ofenventilator
-      - entity: sensor.wohnzimmer_temperatur
+# --------------------------------------------------------------------------
+# Alternative ohne Custom-Card (Standard-Karten). Entity-IDs anpassen.
+# --------------------------------------------------------------------------
+#
+# type: vertical-stack
+# cards:
+#   - type: gauge
+#     entity: sensor.kamin_rauchgastemperatur
+#     name: Rauchgas
+#     unit: "°C"
+#     min: 0
+#     max: 600
+#     needle: true
+#     severity:
+#       green: 180
+#       yellow: 350
+#       red: 450
+#
+#   - type: markdown
+#     content: >-
+#       **{{ states('sensor.kamin_abbrandphase') }}** ·
+#       {{ states('sensor.kamin_empfehlung') }}
+#     title: Status
+#
+#   - type: entities
+#     title: Abbrand
+#     entities:
+#       - entity: sensor.kamin_abbrandphase
+#         name: Phase
+#       - entity: sensor.kamin_empfehlung
+#         name: Empfehlung
+#       - entity: sensor.kamin_spitzentemperatur
+#         name: Spitze
+#       - entity: sensor.kamin_abbranddauer
+#         name: Dauer
+#       - entity: sensor.kamin_temperaturaenderung
+#         name: Änderung
+#       - entity: binary_sensor.kamin_abbrand_aktiv
+#         name: Aktiv
+#       - entity: binary_sensor.kamin_uebertemperatur
+#         name: Übertemperatur
+#
+#   - type: history-graph
+#     title: Rauchgasverlauf
+#     hours_to_show: 12
+#     entities:
+#       - entity: sensor.kamin_rauchgastemperatur
+#
+#   # Optional: Wärmeverteilung. Mit der eingebauten Ventilatorsteuerung ist
+#   # fan.kamin_ofenventilator die KaminOfenWaechter-Entität; fan.ofen_ventilator wäre
+#   # das gesteuerte Ziel.
+#   - type: entities
+#     title: Wärmeverteilung
+#     entities:
+#       - entity: fan.kamin_ofenventilator
+#       - entity: sensor.wohnzimmer_temperatur
