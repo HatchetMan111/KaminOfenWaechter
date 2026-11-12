@@ -4,15 +4,36 @@ from __future__ import annotations
 
 from datetime import timedelta
 
+from .logic import FanSettings
+
 DOMAIN = "flueguard"
 NAME = "FlueGuard"
-PLATFORMS = ["sensor", "binary_sensor"]
+PLATFORMS = ["sensor", "binary_sensor", "fan"]
 
 # Configuration
 CONF_SOURCE_ENTITY = "source_entity"
 CONF_UPDATE_INTERVAL = "update_interval"
 CONF_NOTIFICATIONS = "notifications"
 CONF_NOTIFY_SERVICE = "notify_service"
+
+# Flow-only helper (not stored)
+CONF_SETUP_FAN = "setup_fan"
+
+# Fan control
+CONF_FAN_ENABLED = "fan_enabled"
+CONF_FAN_ENTITY = "fan_entity"
+CONF_FAN_ROOM_ENTITY = "fan_room_entity"
+CONF_FAN_OFF_TEMP = "fan_off_temp"
+CONF_FAN_MIN_TEMP = "fan_min_temp"
+CONF_FAN_MAX_TEMP = "fan_max_temp"
+CONF_FAN_MIN_PERCENTAGE = "fan_min_percentage"
+CONF_FAN_MAX_PERCENTAGE = "fan_max_percentage"
+CONF_FAN_NIGHT_START = "fan_night_start"
+CONF_FAN_NIGHT_END = "fan_night_end"
+CONF_FAN_NIGHT_PERCENTAGE = "fan_night_percentage"
+CONF_FAN_ROOM_MAX = "fan_room_max"
+CONF_FAN_ROOM_PERCENTAGE = "fan_room_percentage"
+CONF_FAN_OVERRIDE_MINUTES = "fan_override_minutes"
 
 CONF_COLD_THRESHOLD = "cold_threshold"
 CONF_REFUEL_THRESHOLD = "refuel_threshold"
@@ -35,6 +56,28 @@ DEFAULT_OPTIMAL_HIGH = 350.0
 DEFAULT_WARN_THRESHOLD = 450.0
 DEFAULT_IGNITION_MAX_MINUTES = 15.0
 DEFAULT_BURNOUT_RATE = -1.5
+
+# Fan control defaults (single source of truth is logic.FanSettings).
+DEFAULT_FAN = FanSettings()
+DEFAULT_FAN_ENABLED = False
+DEFAULT_FAN_ENTITY = ""
+DEFAULT_FAN_ROOM_ENTITY = ""
+DEFAULT_FAN_OFF_TEMP = DEFAULT_FAN.off_temp
+DEFAULT_FAN_MIN_TEMP = DEFAULT_FAN.min_temp
+DEFAULT_FAN_MAX_TEMP = DEFAULT_FAN.max_temp
+DEFAULT_FAN_MIN_PERCENTAGE = DEFAULT_FAN.min_percentage
+DEFAULT_FAN_MAX_PERCENTAGE = DEFAULT_FAN.max_percentage
+DEFAULT_FAN_NIGHT_START = DEFAULT_FAN.night_start
+DEFAULT_FAN_NIGHT_END = DEFAULT_FAN.night_end
+DEFAULT_FAN_NIGHT_PERCENTAGE = DEFAULT_FAN.night_percentage
+DEFAULT_FAN_ROOM_MAX = DEFAULT_FAN.room_max
+DEFAULT_FAN_ROOM_PERCENTAGE = DEFAULT_FAN.room_percentage
+DEFAULT_FAN_OVERRIDE_MINUTES = DEFAULT_FAN.override_minutes
+
+# How long a manual "boost" preset runs at 100 %.
+FAN_BOOST_MINUTES = 20
+# Percentage steps below this are not re-sent to the target to avoid noise.
+FAN_PERCENTAGE_TOLERANCE = 2
 
 # Internal tuning that is not exposed in the UI (sensible defaults).
 PEAK_DROP = 25.0

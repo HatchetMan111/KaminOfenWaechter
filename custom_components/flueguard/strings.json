@@ -8,7 +8,28 @@
           "source_entity": "Flue gas temperature sensor",
           "update_interval": "Polling interval",
           "notifications": "Send notifications",
-          "notify_service": "Notify service (e.g. notify.mobile_app_phone)"
+          "notify_service": "Notify service (e.g. notify.mobile_app_phone)",
+          "setup_fan": "Also control a stove fan"
+        }
+      },
+      "fan": {
+        "title": "Stove fan",
+        "description": "Optional. FlueGuard controls an existing fan or switch entity based on the flue gas temperature. The fan must only move room air, never combustion air.",
+        "data": {
+          "fan_enabled": "Enable fan control",
+          "fan_entity": "Fan or switch entity",
+          "fan_room_entity": "Room temperature sensor (optional)",
+          "fan_off_temp": "Fan off below",
+          "fan_min_temp": "Minimum speed from",
+          "fan_max_temp": "Maximum speed from",
+          "fan_min_percentage": "Minimum speed",
+          "fan_max_percentage": "Maximum speed",
+          "fan_night_start": "Night mode from",
+          "fan_night_end": "Night mode until",
+          "fan_night_percentage": "Night speed limit",
+          "fan_room_max": "Room is warm enough at",
+          "fan_room_percentage": "Speed limit when room is warm",
+          "fan_override_minutes": "Manual override duration"
         }
       }
     },
@@ -18,7 +39,10 @@
       "not_numeric": "The selected entity does not provide a numeric value.",
       "not_temperature": "The selected entity does not provide a temperature in °C or °F.",
       "notify_required": "Please enter a notify service or disable notifications.",
-      "invalid_thresholds": "The thresholds are not in ascending order."
+      "invalid_thresholds": "The thresholds are not in ascending order.",
+      "fan_not_found": "The selected fan/switch entity does not exist.",
+      "invalid_fan_settings": "The fan settings are not plausible: off ≤ min < max, and the caps must not exceed the maximum speed.",
+      "fan_required": "Please select a fan or switch entity, or disable fan control."
     },
     "abort": {
       "already_configured": "This sensor is already monitored by FlueGuard."
@@ -28,6 +52,14 @@
     "step": {
       "init": {
         "title": "FlueGuard settings",
+        "description": "What do you want to change?",
+        "menu_options": {
+          "general": "Thresholds and notifications",
+          "fan": "Stove fan"
+        }
+      },
+      "general": {
+        "title": "Thresholds and notifications",
         "description": "Thresholds in °C. Order must be: cold < reload < optimal low < main < optimal high < warning.",
         "data": {
           "update_interval": "Polling interval",
@@ -42,11 +74,34 @@
           "notifications": "Send notifications",
           "notify_service": "Notify service"
         }
+      },
+      "fan": {
+        "title": "Stove fan",
+        "description": "Leave the fan entity empty to disable fan control. FlueGuard only moves room air – it never controls combustion air.",
+        "data": {
+          "fan_enabled": "Enable fan control",
+          "fan_entity": "Fan or switch entity",
+          "fan_room_entity": "Room temperature sensor (optional)",
+          "fan_off_temp": "Fan off below",
+          "fan_min_temp": "Minimum speed from",
+          "fan_max_temp": "Maximum speed from",
+          "fan_min_percentage": "Minimum speed",
+          "fan_max_percentage": "Maximum speed",
+          "fan_night_start": "Night mode from",
+          "fan_night_end": "Night mode until",
+          "fan_night_percentage": "Night speed limit",
+          "fan_room_max": "Room is warm enough at",
+          "fan_room_percentage": "Speed limit when room is warm",
+          "fan_override_minutes": "Manual override duration"
+        }
       }
     },
     "error": {
       "notify_required": "Please enter a notify service or disable notifications.",
-      "invalid_thresholds": "The thresholds are not in ascending order."
+      "invalid_thresholds": "The thresholds are not in ascending order.",
+      "fan_not_found": "The selected fan/switch entity does not exist.",
+      "invalid_fan_settings": "The fan settings are not plausible: off ≤ min < max, and the caps must not exceed the maximum speed.",
+      "fan_required": "Please select a fan or switch entity, or disable fan control."
     }
   },
   "entity": {
@@ -90,6 +145,20 @@
       },
       "overtemperature": {
         "name": "Overtemperature"
+      }
+    },
+    "fan": {
+      "stove_fan": {
+        "name": "Stove fan",
+        "state_attributes": {
+          "preset_mode": {
+            "state": {
+              "auto": "Automatic",
+              "boost": "Boost",
+              "off": "Off"
+            }
+          }
+        }
       }
     }
   }

@@ -16,7 +16,7 @@ Rauchgas 380 °C · Hauptabbrand
 → „Luft drosseln“ · Push aufs Handy
 ```
 
-> **Status:** v0.1.0 · getestet mit Home Assistant 2025.1 · 21 automatisierte
+> **Status:** v0.2.0 · getestet mit Home Assistant 2025.1 · 41 automatisierte
 > Tests (Logik + Integration) · MIT-Lizenz
 
 ---
@@ -89,17 +89,21 @@ Bluetooth, egal) und berechnet daraus:
 | **Temperaturänderung** | °C/min, geglättet – erkennt Anfeuern und Ausbrand |
 | **Übertemperatur** | Binärsensor, wenn die Warnschwelle überschritten wird |
 | **Abbrand aktiv** | Binärsensor für Automationen (Licht, Dunstabzug, Lüftung) |
+| **Ofenventilator** | Optionale `fan`-Entität, die einen vorhandenen Ventilator oder Schalter temperaturabhängig steuert |
 
 Dazu:
 
 - **Push-Benachrichtigungen** (optional) bei „zu heiß“, „drosseln“ und „nachlegen“
   – mit Cooldown, damit das Handy nicht nervt.
+- **Eingebaute Ventilatorsteuerung** (optional): Rampe, Nachtmodus,
+  Raumtemperatur-Begrenzung und manueller Boost – ohne eine einzige Zeile YAML.
 - **Events** auf dem HA-Bus für eigene Automationen.
 - **Zustand überlebt Neustarts** – ein laufender Abbrand wird wieder aufgenommen.
 - **Funktioniert mit °C und °F**, rechnet intern in °C.
 
-FlueGuard regelt **nicht** aktiv. Das ist Absicht – siehe
-[Sicherheit & Recht](#sicherheit--recht).
+FlueGuard regelt **nicht** die Verbrennungsluft. Das ist Absicht – siehe
+[Sicherheit & Recht](#sicherheit--recht). Die optionale Ventilatorsteuerung
+bewegt ausschließlich Raumluft und greift nicht in die Feuerung ein.
 
 ---
 
@@ -689,30 +693,109 @@ fan:
 Wichtig: Ein 12-V-Lüfter gehört **nicht** direkt an den GPIO, sondern über
 einen MOSFET oder ein Treibermodul. Der ESP liefert nur das PWM-Signal.
 
+### Eingebaute Ventilator-Entität (empfohlen)
+
+Seit v0.2.0 bringt FlueGuard die Ventilatorsteuerung selbst mit. Du brauchst
+**keine Automationen** mehr: In den Optionen sagst du, welche `fan.*`- oder
+`switch.*`-Entität gesteuert werden soll, und FlueGuard übernimmt Rampe,
+Nachtmodus, Raumtemperatur-Begrenzung und Handsteuerung.
+
+**Aktivieren:** Einstellungen → Geräte & Dienste → FlueGuard → **Konfigurieren**
+→ **Ofenventilator** → „Ventilatorsteuerung aktivieren“ anhaken und die
+Ziel-Entität wählen. Beim ersten Einrichten geht das direkt über die Checkbox
+„Auch einen Ofenventilator steuern“.
+
+Die Integration legt dann eine eigene Entität an, z. B.
+`fan.kamin_ofenventilator` (deutsch) bzw. `fan.kamin_stove_fan` (englisch).
+Sie steuert die Ziel-Entität, ersetzt sie aber nicht – der Ventilator bleibt
+normal bedienbar, solange keine Handsteuerung aktiv ist.
+
+**Unterstützte Ziele**
+
+| Ziel | Verhalten |
+|---|---|
+| `fan.*` mit `SET_SPEED` | Drehzahl 0–100 % über `fan.set_percentage` |
+| `fan.*` ohne `SET_SPEED` | nur `fan.turn_on` / `fan.turn_off` |
+| `switch.*` (Smart Plug) | `switch.turn_on`, sobald die Drehzahl > 0 ist, sonst `switch.turn_off` |
+
+**Presets und Handsteuerung**
+
+| Preset / Aktion | Wirkung |
+|---|---|
+| `auto` | Automatik nach Rauchgastemperatur (Standard) |
+| `boost` | 100 % für 20 Minuten, danach zurück auf `auto` |
+| `off` | 0 % für die eingestellte Dauer, danach zurück auf `auto` |
+| Prozentwert setzen | Handsteuerung für die eingestellte Dauer (Default 60 min) |
+| `fan.turn_off` | wie Preset `off` – kein dauerhaftes Abschalten |
+
+Nach Ablauf der Handsteuerung übernimmt die Automatik wieder. Das ist Absicht:
+Ein vergessener Boost soll den Ofen nicht dauerhaft kalt blasen.
+
+**Optionen**
+
+| Option | Default | Bedeutung |
+|---|---|---|
+| `fan_enabled` | aus | Ventilatorsteuerung ein/aus |
+| `fan_entity` | – | Ziel-Entität (`fan.*` oder `switch.*`) |
+| `fan_room_entity` | – | optionaler Raumtemperatursensor |
+| `fan_off_temp` | 140 °C | darunter ist der Ventilator aus |
+| `fan_min_temp` | 160 °C | ab hier Mindestdrehzahl |
+| `fan_max_temp` | 320 °C | ab hier Maximaldrehzahl |
+| `fan_min_percentage` | 15 % | Mindestdrehzahl |
+| `fan_max_percentage` | 85 % | Maximaldrehzahl |
+| `fan_night_start` / `fan_night_end` | 22 / 7 Uhr | Nachtfenster |
+| `fan_night_percentage` | 30 % | Drehzahlgrenze nachts |
+| `fan_room_max` | 24 °C | ab hier wird der Raum als warm genug angesehen |
+| `fan_room_percentage` | 40 % | Drehzahlgrenze bei warmem Raum |
+| `fan_override_minutes` | 60 min | Dauer der Handsteuerung |
+
+**Attribute der Entität**
+
+| Attribut | Bedeutung |
+|---|---|
+| `target_entity` | die gesteuerte `fan.*`/`switch.*`-Entität |
+| `auto` | `true`, wenn gerade die Automatik läuft |
+| `reason` | `off`, `ramp`, `overtemp`, `night`, `room`, `night_room`, `manual` |
+| `auto_percentage` | Drehzahl, die die Automatik gerade wollen würde |
+| `override_percentage` | Drehzahl der aktiven Handsteuerung |
+| `override_until` | Zeitstempel, wann die Handsteuerung endet |
+
+**Wichtig:** Wird die Ventilatorsteuerung in den Optionen abgeschaltet, entfernt
+FlueGuard die Entität beim nächsten Reload und räumt auch den Registry-Eintrag
+auf. Die Ziel-Entität selbst wird nie gelöscht.
+
 ### Die Steuerlogik
 
-Eine gute Ventilatorautomatik arbeitet mit **Phase + Rauchgastemperatur +
-Raumtemperatur**, nicht mit einer festen Einschalttemperatur.
+Eine gute Ventilatorautomatik arbeitet mit **Rauchgastemperatur +
+Raumtemperatur + Tageszeit**, nicht mit einer festen Einschalttemperatur.
+Die eingebaute Entität rechnet so:
 
 | Bedingung | Ventilator |
 |---|---|
-| Kein Abbrand (`idle` / `burnout`) | aus (nach 10–15 min Nachlauf) |
-| `ignition` / `main`, Rauchgas 140–300 °C | 20–80 % linear |
-| Rauchgas > 350 °C | 80–100 % |
-| Rauchgas > Warnschwelle (450 °C) | 100 % Notkühlung |
 | Rauchgas < 140 °C | aus (Glanzruß vermeiden) |
-| Raumtemperatur über Wunsch | Leistung reduzieren |
-| Nachtmodus 22–7 Uhr | max. 30 % |
+| 140–160 °C | 15 % (Mindestdrehzahl) |
+| 160–320 °C | 15–85 % linear |
+| 320–450 °C | 85 % |
+| Rauchgas ≥ Warnschwelle (450 °C) | 100 % Notkühlung |
+| Nachtfenster 22–7 Uhr | max. 30 % |
+| Raumtemperatur ≥ 24 °C | max. 40 % |
 | Manueller Boost | 100 % für 20 min |
+| Handsteuerung | eigener Prozentwert, Default 60 min |
 
-Wichtig ist die **Mindesttemperatur**: Ein Ventilator, der den Ofen bei
+Die Reihenfolge ist wichtig: **Übertemperatur schlägt Nacht- und Raumgrenze.**
+Wenn der Ofen zu heiß läuft, ist Kühlung wichtiger als Nachtruhe. Die beiden
+Grenzen greifen nur im normalen Rampenbereich.
+
+Wichtig ist außerdem die **Mindesttemperatur**: Ein Ventilator, der den Ofen bei
 150 °C Rauchgas weiter kühlt, verschiebt den Taupunkt und fördert
 Ablagerungen. Deshalb läuft er nur, solange der Ofen wirklich heiß ist.
 
-### Beispiel-Automation
+### Beispiel-Automation (nur für Sonderfälle)
 
-Vollständig in [`examples/fan-control.yaml`](examples/fan-control.yaml).
-Der Kern:
+Die eingebaute Entität deckt den Normalfall ab. Wer eigene Logik braucht –
+etwa eine Kopplung an Fensterkontakte oder eine Wärmepumpe – findet in
+[`examples/fan-control.yaml`](examples/fan-control.yaml) weiterhin die
+YAML-Variante. Der Kern:
 
 ```yaml
 - alias: "Ofen: Ventilator nach Rauchgastemperatur"
@@ -746,6 +829,11 @@ Der Kern:
 Dazu eine Ausschalt-Automation mit Nachlauf und eine Notkühlung bei
 Übertemperatur. Wer nur einen Smart Plug hat, ersetzt `fan.set_percentage`
 durch `switch.turn_on` und lässt die Rampe weg.
+
+> **Tipp:** Für den Normalfall brauchst du diese Datei nicht – die eingebaute
+> Ventilator-Entität macht genau das, inklusive Handsteuerung und
+> Registry-Aufräumen. Die YAML-Variante ist für alle, die zusätzliche
+> Bedingungen (Fenster, PV-Überschuss, Wärmepumpe) einbauen wollen.
 
 ### Sicherheitsregeln
 
@@ -855,10 +943,16 @@ HACS zeigt Updates automatisch an. Nach dem Update Home Assistant neu starten.
 | **Abfrageintervall** | Standard 30 s. Kürzer = schnellere Reaktion, mehr Datenbankeinträge. |
 | **Benachrichtigungen** | Push bei Übertemperatur, „drosseln“ und „nachlegen“. |
 | **Notify-Service** | z. B. `notify.mobile_app_handy` (mit oder ohne `notify.`). |
+| **Ofenventilator** | Optionale Checkbox: öffnet einen zweiten Schritt, in dem die Ziel-Entität und die Ventilatorgrenzen eingestellt werden. Kann auch später über die Optionen aktiviert werden. |
 
 ### Optionen (nachträglich änderbar)
 
-Unter **Einstellungen → Geräte & Dienste → FlueGuard → Konfigurieren**:
+Unter **Einstellungen → Geräte & Dienste → FlueGuard → Konfigurieren** öffnet
+sich ein Menü mit **„Schwellwerte und Benachrichtigungen“** und
+**„Ofenventilator“**. Beide Bereiche lassen sich unabhängig ändern; die jeweils
+anderen Optionen bleiben erhalten.
+
+**Schwellwerte und Benachrichtigungen**
 
 | Option | Default | Bedeutung |
 |---|---|---|
@@ -872,6 +966,11 @@ Unter **Einstellungen → Geräte & Dienste → FlueGuard → Konfigurieren**:
 | `burnout_rate` | −1,5 °C/min | Ab dieser Abkühlrate beginnt der Ausbrand. |
 
 Die Reihenfolge muss aufsteigend sein, sonst lehnt der Assistent die Eingabe ab.
+
+**Ofenventilator** – Details und alle Optionen stehen unter
+[Wärmeverteilung](#wärmeverteilung-ventilatoren-automatisch-steuern).
+Kurz: `fan_enabled`, `fan_entity`, optionale Raumtemperatur, Rampengrenzen,
+Nachtfenster und Dauer der Handsteuerung.
 
 ### Erste Schritte nach der Installation
 
@@ -902,6 +1001,18 @@ Die Reihenfolge muss aufsteigend sein, sonst lehnt der Assistent die Eingabe ab.
 |---|---|
 | `binary_sensor.<name>_abbrand_aktiv` | `on`, solange eine Phase ≠ `idle` ist |
 | `binary_sensor.<name>_uebertemperatur` | `on`, wenn `warn_threshold` überschritten |
+
+### Ventilator (optional)
+
+Wird nur angelegt, wenn in den Optionen eine Ventilatorsteuerung aktiviert ist.
+
+| Entität | Werte | Beschreibung |
+|---|---|---|
+| `fan.<name>_ofenventilator` | `off` · `auto` · `boost` | Folgt der Rauchgastemperatur, mit Nacht-/Raumgrenze und Handsteuerung |
+
+Attribute: `target_entity`, `auto`, `reason`, `auto_percentage`,
+`override_percentage`, `override_until` – siehe
+[Wärmeverteilung](#wärmeverteilung-ventilatoren-automatisch-steuern).
 
 ### Events
 
@@ -1128,8 +1239,8 @@ Weil ein Eingriff in die Feuerung die Typprüfung berührt und eine fehlerhafte
 Automatik CO erzeugen kann. Wer das trotzdem bauen will, braucht: fail-safe
 öffnende Mechanik, harte Temperaturgrenzen im ESP (nicht nur in HA),
 Watchdog, mechanische Endanschläge und die Freigabe vom Ofenhersteller.
-FlueGuard liefert dafür die Sensorik und die Phasenlogik – die Aktorik ist
-bewusst nicht enthalten.
+FlueGuard liefert dafür die Sensorik und die Phasenlogik – die Aktorik der
+Luftklappe ist bewusst nicht enthalten.
 
 **Kann ich mehrere Öfen überwachen?**
 Ja, die Integration einfach mehrfach hinzufügen – jede Instanz bekommt ein
@@ -1171,7 +1282,7 @@ zusammengestellt. Die wichtigsten Quellen:
   – ESP8266 + MAX6675, Linearantrieb auf der Luftklappe, Ventilator zur
   Kühlung, Zigbee-Plug – und ein ehrlicher Erfahrungsbericht: Der erste
   Stellantrieb war nach sechs Monaten defekt. Genau deshalb regelt FlueGuard
-  nicht.
+  die Luftklappe nicht – der Ventilator bewegt nur Raumluft.
 - **[Otto updated – Intelligente Ofensteuerung](https://www.otto.de/updated/ratgeber/automatische-ofensteuerung-im-smart-home-79071/)**
   – Überblick über smarte Öfen: Pellet, Holz, Gas, Elektro, App-Anbindung und
   Sicherheitsabstände. Zeigt gut, wo Hersteller schon automatisieren (Pellet)
@@ -1197,7 +1308,7 @@ Wenn du das Repo auf GitHub stellst, sind nur wenige Dinge anzupassen:
    - `documentation` und `issue_tracker`: deine Repo-URL
 2. **Repo-Themen** setzen: `home-assistant`, `hacs`, `hacs-integration`,
    `wood-stove`, `kaminofen`, `flue-gas`.
-3. **Release anlegen** (`v0.1.0`), damit HACS Updates erkennt.
+3. **Release anlegen** (`v0.2.0`), damit HACS Updates erkennt.
 4. Optional: In HACS als Standard-Repository vorschlagen
    (`hacs/default` Pull Request) – dann finden es andere ohne URL.
 

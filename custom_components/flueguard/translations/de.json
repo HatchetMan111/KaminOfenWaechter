@@ -8,7 +8,28 @@
           "source_entity": "Rauchgas-Temperatursensor",
           "update_interval": "Abfrageintervall",
           "notifications": "Benachrichtigungen senden",
-          "notify_service": "Notify-Service (z. B. notify.mobile_app_handy)"
+          "notify_service": "Notify-Service (z. B. notify.mobile_app_handy)",
+          "setup_fan": "Auch einen Ofenventilator steuern"
+        }
+      },
+      "fan": {
+        "title": "Ofenventilator",
+        "description": "Optional. FlueGuard steuert eine vorhandene Ventilator- oder Schalter-Entität nach der Rauchgastemperatur. Der Ventilator darf nur Raumluft bewegen, niemals Verbrennungsluft.",
+        "data": {
+          "fan_enabled": "Ventilatorsteuerung aktivieren",
+          "fan_entity": "Ventilator- oder Schalter-Entität",
+          "fan_room_entity": "Raumtemperatursensor (optional)",
+          "fan_off_temp": "Ventilator aus unter",
+          "fan_min_temp": "Mindestdrehzahl ab",
+          "fan_max_temp": "Maximaldrehzahl ab",
+          "fan_min_percentage": "Mindestdrehzahl",
+          "fan_max_percentage": "Maximaldrehzahl",
+          "fan_night_start": "Nachtmodus ab",
+          "fan_night_end": "Nachtmodus bis",
+          "fan_night_percentage": "Drehzahlgrenze nachts",
+          "fan_room_max": "Raum warm genug ab",
+          "fan_room_percentage": "Drehzahlgrenze bei warmem Raum",
+          "fan_override_minutes": "Dauer der Handsteuerung"
         }
       }
     },
@@ -18,7 +39,10 @@
       "not_numeric": "Die gewählte Entität liefert keinen Zahlenwert.",
       "not_temperature": "Die gewählte Entität liefert keine Temperatur in °C oder °F.",
       "notify_required": "Bitte einen Notify-Service angeben oder Benachrichtigungen abschalten.",
-      "invalid_thresholds": "Die Schwellwerte sind nicht aufsteigend sortiert."
+      "invalid_thresholds": "Die Schwellwerte sind nicht aufsteigend sortiert.",
+      "fan_not_found": "Die gewählte Ventilator-/Schalter-Entität existiert nicht.",
+      "invalid_fan_settings": "Die Ventilator-Einstellungen sind nicht plausibel: aus ≤ min < max, und die Grenzen dürfen die Maximaldrehzahl nicht überschreiten.",
+      "fan_required": "Bitte eine Ventilator-/Schalter-Entität wählen oder die Ventilatorsteuerung abschalten."
     },
     "abort": {
       "already_configured": "Dieser Sensor wird bereits von FlueGuard überwacht."
@@ -28,6 +52,14 @@
     "step": {
       "init": {
         "title": "FlueGuard Einstellungen",
+        "description": "Was möchtest du ändern?",
+        "menu_options": {
+          "general": "Schwellwerte und Benachrichtigungen",
+          "fan": "Ofenventilator"
+        }
+      },
+      "general": {
+        "title": "Schwellwerte und Benachrichtigungen",
         "description": "Schwellwerte in °C. Reihenfolge: kalt < nachlegen < optimal von < Hauptabbrand < optimal bis < Warnung.",
         "data": {
           "update_interval": "Abfrageintervall",
@@ -42,11 +74,34 @@
           "notifications": "Benachrichtigungen senden",
           "notify_service": "Notify-Service"
         }
+      },
+      "fan": {
+        "title": "Ofenventilator",
+        "description": "Ventilator-Entität leer lassen, um die Ventilatorsteuerung abzuschalten. FlueGuard bewegt nur Raumluft – niemals Verbrennungsluft.",
+        "data": {
+          "fan_enabled": "Ventilatorsteuerung aktivieren",
+          "fan_entity": "Ventilator- oder Schalter-Entität",
+          "fan_room_entity": "Raumtemperatursensor (optional)",
+          "fan_off_temp": "Ventilator aus unter",
+          "fan_min_temp": "Mindestdrehzahl ab",
+          "fan_max_temp": "Maximaldrehzahl ab",
+          "fan_min_percentage": "Mindestdrehzahl",
+          "fan_max_percentage": "Maximaldrehzahl",
+          "fan_night_start": "Nachtmodus ab",
+          "fan_night_end": "Nachtmodus bis",
+          "fan_night_percentage": "Drehzahlgrenze nachts",
+          "fan_room_max": "Raum warm genug ab",
+          "fan_room_percentage": "Drehzahlgrenze bei warmem Raum",
+          "fan_override_minutes": "Dauer der Handsteuerung"
+        }
       }
     },
     "error": {
       "notify_required": "Bitte einen Notify-Service angeben oder Benachrichtigungen abschalten.",
-      "invalid_thresholds": "Die Schwellwerte sind nicht aufsteigend sortiert."
+      "invalid_thresholds": "Die Schwellwerte sind nicht aufsteigend sortiert.",
+      "fan_not_found": "Die gewählte Ventilator-/Schalter-Entität existiert nicht.",
+      "invalid_fan_settings": "Die Ventilator-Einstellungen sind nicht plausibel: aus ≤ min < max, und die Grenzen dürfen die Maximaldrehzahl nicht überschreiten.",
+      "fan_required": "Bitte eine Ventilator-/Schalter-Entität wählen oder die Ventilatorsteuerung abschalten."
     }
   },
   "entity": {
@@ -90,6 +145,20 @@
       },
       "overtemperature": {
         "name": "Übertemperatur"
+      }
+    },
+    "fan": {
+      "stove_fan": {
+        "name": "Ofenventilator",
+        "state_attributes": {
+          "preset_mode": {
+            "state": {
+              "auto": "Automatik",
+              "boost": "Boost",
+              "off": "Aus"
+            }
+          }
+        }
       }
     }
   }

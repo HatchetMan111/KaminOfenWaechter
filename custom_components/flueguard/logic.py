@@ -192,3 +192,121 @@ class Engine:
         self.phase = Phase.IDLE
         self.burn_started = None
         self.peak = 0.0
+
+
+class FanReason(str, Enum):
+    """Why the fan is running at the current speed."""
+
+    OFF = "off"
+    RAMP = "ramp"
+    OVERTEMP = "overtemp"
+    NIGHT = "night"
+    ROOM = "room"
+    NIGHT_ROOM = "night_room"
+    MANUAL = "manual"
+
+
+@dataclass(frozen=True)
+class FanSettings:
+    """Tuning for the optional stove fan control.
+
+    The fan only moves room air across/around the stove. It never touches the
+    combustion air, so it cannot change the burn itself.
+    """
+
+    # Below this flue gas temperature the fan stays off (avoids cooling the
+    # stove into the creosote range).
+    off_temp: float = 140.0
+    # At min_temp the fan starts at min_percentage.
+    min_temp: float = 160.0
+    # At max_temp the fan reaches max_percentage.
+    max_temp: float = 320.0
+    min_percentage: int = 15
+    max_percentage: int = 85
+    # At/above the over-temperature threshold the fan runs at 100 %.
+    warn_temp: float = 450.0
+    # Night window (local hours, end is exclusive, wrapping allowed).
+    night_start: int = 22
+    night_end: int = 7
+    night_percentage: int = 30
+    # When the room is already warm enough, do not add more heat.
+    room_max: float = 24.0
+    room_percentage: int = 40
+    # Default duration of a manual override.
+    override_minutes: int = 60
+
+
+@dataclass(frozen=True)
+class FanDecision:
+    """One computed fan target."""
+
+    percentage: int
+    on: bool
+    reason: FanReason
+
+
+def in_night_window(hour: int, start: int, end: int) -> bool:
+    """Return True if `hour` lies in the (wrapping) window [start, end)."""
+    start %= 24
+    end %= 24
+    hour %= 24
+    if start == end:
+        return True
+    if start < end:
+        return start <= hour < end
+    return hour >= start or hour < end
+
+
+def fan_percentage(
+    temperature: float,
+    settings: FanSettings | None = None,
+    *,
+    room_temperature: float | None = None,
+    is_night: bool = False,
+) -> FanDecision:
+    """Compute the automatic fan target for a flue gas temperature.
+
+    Rules, in order of priority:
+
+    1. Below `off_temp` the fan is off.
+    2. At/above `warn_temp` it runs at 100 % for cooling (night/room caps do
+       not apply here - safety beats comfort).
+    3. Otherwise the speed ramps linearly between `min_temp`/`min_percentage`
+       and `max_temp`/`max_percentage`.
+    4. During the night the speed is capped at `night_percentage`.
+    5. If the room is at/above `room_max`, the speed is capped at
+       `room_percentage`.
+    """
+    settings = settings or FanSettings()
+
+    if temperature < settings.off_temp:
+        return FanDecision(0, False, FanReason.OFF)
+
+    if temperature >= settings.warn_temp:
+        return FanDecision(100, True, FanReason.OVERTEMP)
+
+    span = max(1.0, settings.max_temp - settings.min_temp)
+    ratio = (temperature - settings.min_temp) / span
+    ratio = max(0.0, min(1.0, ratio))
+    span_percentage = settings.max_percentage - settings.min_percentage
+    percentage = settings.min_percentage + ratio * span_percentage
+    percentage = int(round(percentage))
+    percentage = max(settings.min_percentage, min(settings.max_percentage, percentage))
+
+    reason = FanReason.RAMP
+
+    if is_night and percentage > settings.night_percentage:
+        percentage = settings.night_percentage
+        reason = FanReason.NIGHT
+
+    if (
+        room_temperature is not None
+        and room_temperature >= settings.room_max
+        and percentage > settings.room_percentage
+    ):
+        percentage = settings.room_percentage
+        reason = (
+            FanReason.NIGHT_ROOM if reason is FanReason.NIGHT else FanReason.ROOM
+        )
+
+    return FanDecision(percentage, percentage > 0, reason)

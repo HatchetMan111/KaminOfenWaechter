@@ -115,3 +115,103 @@ def test_phase_and_recommendation_change_flags() -> None:
 def test_limits_ordering_validation() -> None:
     assert Limits().is_ordered() is True
     assert Limits(cold=300).is_ordered() is False
+
+
+# ----------------------------------------------------------------------
+# fan
+# ----------------------------------------------------------------------
+from flueguard_logic import (  # noqa: E402
+    FanReason,
+    FanSettings,
+    fan_percentage,
+    in_night_window,
+)
+
+
+def test_fan_is_off_below_off_temperature() -> None:
+    decision = fan_percentage(120.0)
+    assert decision.on is False
+    assert decision.percentage == 0
+    assert decision.reason is FanReason.OFF
+
+
+def test_fan_starts_at_minimum_percentage() -> None:
+    decision = fan_percentage(160.0)
+    assert decision.percentage == 15
+    assert decision.on is True
+    assert decision.reason is FanReason.RAMP
+    # Between off_temp and min_temp the fan already runs at minimum speed.
+    assert fan_percentage(150.0).percentage == 15
+
+
+def test_fan_ramps_linearly() -> None:
+    settings = FanSettings()
+    # 240 °C is exactly in the middle of 160…320 °C.
+    assert fan_percentage(240.0, settings).percentage == 50
+    # Above max_temp it stays at max_percentage until the warning threshold.
+    assert fan_percentage(320.0, settings).percentage == 85
+    assert fan_percentage(440.0, settings).percentage == 85
+
+
+def test_fan_full_speed_on_overtemperature() -> None:
+    decision = fan_percentage(460.0, is_night=True, room_temperature=27.0)
+    assert decision.percentage == 100
+    assert decision.reason is FanReason.OVERTEMP
+    assert decision.on is True
+
+
+def test_fan_night_cap() -> None:
+    decision = fan_percentage(300.0, is_night=True)
+    assert decision.percentage == 30
+    assert decision.reason is FanReason.NIGHT
+
+
+def test_fan_room_cap() -> None:
+    decision = fan_percentage(300.0, room_temperature=24.0)
+    assert decision.percentage == 40
+    assert decision.reason is FanReason.ROOM
+
+
+def test_fan_room_below_limit_does_not_cap() -> None:
+    decision = fan_percentage(300.0, room_temperature=23.9)
+    assert decision.percentage == 76
+    assert decision.reason is FanReason.RAMP
+
+
+def test_fan_night_and_room_cap_together() -> None:
+    # A stricter room cap than the night cap is unusual but possible.
+    settings = FanSettings(room_percentage=10)
+    decision = fan_percentage(
+        300.0, settings, is_night=True, room_temperature=25.0
+    )
+    assert decision.percentage == 10
+    assert decision.reason is FanReason.NIGHT_ROOM
+
+
+def test_fan_never_exceeds_configured_bounds() -> None:
+    settings = FanSettings(min_percentage=20, max_percentage=70)
+    assert fan_percentage(130.0, settings).percentage == 0
+    assert fan_percentage(161.0, settings).percentage == 20
+    assert fan_percentage(319.0, settings).percentage == 70
+    assert fan_percentage(449.0, settings).percentage == 70
+
+
+def test_night_window_wraps_midnight() -> None:
+    assert in_night_window(23, 22, 7) is True
+    assert in_night_window(2, 22, 7) is True
+    assert in_night_window(6, 22, 7) is True
+    assert in_night_window(7, 22, 7) is False
+    assert in_night_window(12, 22, 7) is False
+    assert in_night_window(21, 22, 7) is False
+
+
+def test_night_window_same_start_and_end_is_all_day() -> None:
+    assert in_night_window(3, 8, 8) is True
+
+
+def test_fan_settings_defaults_are_plausible() -> None:
+    settings = FanSettings()
+    assert settings.off_temp <= settings.min_temp < settings.max_temp
+    assert settings.min_percentage <= settings.max_percentage
+    assert settings.night_percentage <= settings.max_percentage
+    assert settings.room_percentage <= settings.max_percentage

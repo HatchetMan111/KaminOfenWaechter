@@ -23,6 +23,20 @@ from homeassistant.util.unit_conversion import TemperatureConverter
 from .const import (
     CONF_BURNOUT_RATE,
     CONF_COLD_THRESHOLD,
+    CONF_FAN_ENABLED,
+    CONF_FAN_ENTITY,
+    CONF_FAN_MAX_PERCENTAGE,
+    CONF_FAN_MAX_TEMP,
+    CONF_FAN_MIN_PERCENTAGE,
+    CONF_FAN_MIN_TEMP,
+    CONF_FAN_NIGHT_END,
+    CONF_FAN_NIGHT_PERCENTAGE,
+    CONF_FAN_NIGHT_START,
+    CONF_FAN_OFF_TEMP,
+    CONF_FAN_OVERRIDE_MINUTES,
+    CONF_FAN_ROOM_ENTITY,
+    CONF_FAN_ROOM_MAX,
+    CONF_FAN_ROOM_PERCENTAGE,
     CONF_IGNITION_MAX_MINUTES,
     CONF_MAIN_THRESHOLD,
     CONF_NOTIFICATIONS,
@@ -35,6 +49,19 @@ from .const import (
     CONF_WARN_THRESHOLD,
     DEFAULT_BURNOUT_RATE,
     DEFAULT_COLD_THRESHOLD,
+    DEFAULT_FAN_ENTITY,
+    DEFAULT_FAN_MAX_PERCENTAGE,
+    DEFAULT_FAN_MAX_TEMP,
+    DEFAULT_FAN_MIN_PERCENTAGE,
+    DEFAULT_FAN_MIN_TEMP,
+    DEFAULT_FAN_NIGHT_END,
+    DEFAULT_FAN_NIGHT_PERCENTAGE,
+    DEFAULT_FAN_NIGHT_START,
+    DEFAULT_FAN_OFF_TEMP,
+    DEFAULT_FAN_OVERRIDE_MINUTES,
+    DEFAULT_FAN_ROOM_ENTITY,
+    DEFAULT_FAN_ROOM_MAX,
+    DEFAULT_FAN_ROOM_PERCENTAGE,
     DEFAULT_IGNITION_MAX_MINUTES,
     DEFAULT_MAIN_THRESHOLD,
     DEFAULT_NOTIFICATIONS,
@@ -58,7 +85,18 @@ from .const import (
     STORAGE_KEY,
     STORAGE_VERSION,
 )
-from .logic import Engine, Limits, Phase, Recommendation, Result
+from .logic import (
+    Engine,
+    FanDecision,
+    FanReason,
+    FanSettings,
+    Limits,
+    Phase,
+    Recommendation,
+    Result,
+    fan_percentage,
+    in_night_window,
+)
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -111,6 +149,47 @@ class FlueGuardCoordinator(DataUpdateCoordinator[FlueGuardData]):
             CONF_NOTIFY_SERVICE, DEFAULT_NOTIFY_SERVICE
         )
 
+        self.fan_entity: str = str(
+            options.get(CONF_FAN_ENTITY, DEFAULT_FAN_ENTITY)
+        ).strip()
+        self.fan_enabled: bool = bool(
+            options.get(CONF_FAN_ENABLED, bool(self.fan_entity))
+        )
+        if not self.fan_enabled:
+            self.fan_entity = ""
+        self.fan_room_entity: str = str(
+            options.get(CONF_FAN_ROOM_ENTITY, DEFAULT_FAN_ROOM_ENTITY)
+        ).strip()
+        self.fan_override_minutes: int = int(
+            options.get(CONF_FAN_OVERRIDE_MINUTES, DEFAULT_FAN_OVERRIDE_MINUTES)
+        )
+        self.fan_settings = FanSettings(
+            off_temp=float(options.get(CONF_FAN_OFF_TEMP, DEFAULT_FAN_OFF_TEMP)),
+            min_temp=float(options.get(CONF_FAN_MIN_TEMP, DEFAULT_FAN_MIN_TEMP)),
+            max_temp=float(options.get(CONF_FAN_MAX_TEMP, DEFAULT_FAN_MAX_TEMP)),
+            min_percentage=int(
+                options.get(CONF_FAN_MIN_PERCENTAGE, DEFAULT_FAN_MIN_PERCENTAGE)
+            ),
+            max_percentage=int(
+                options.get(CONF_FAN_MAX_PERCENTAGE, DEFAULT_FAN_MAX_PERCENTAGE)
+            ),
+            warn_temp=float(
+                options.get(CONF_WARN_THRESHOLD, DEFAULT_WARN_THRESHOLD)
+            ),
+            night_start=int(
+                options.get(CONF_FAN_NIGHT_START, DEFAULT_FAN_NIGHT_START)
+            ),
+            night_end=int(options.get(CONF_FAN_NIGHT_END, DEFAULT_FAN_NIGHT_END)),
+            night_percentage=int(
+                options.get(CONF_FAN_NIGHT_PERCENTAGE, DEFAULT_FAN_NIGHT_PERCENTAGE)
+            ),
+            room_max=float(options.get(CONF_FAN_ROOM_MAX, DEFAULT_FAN_ROOM_MAX)),
+            room_percentage=int(
+                options.get(CONF_FAN_ROOM_PERCENTAGE, DEFAULT_FAN_ROOM_PERCENTAGE)
+            ),
+            override_minutes=self.fan_override_minutes,
+        )
+
         self._engine = Engine(self._limits)
         self._store: Store[dict[str, Any]] = Store(
             hass, STORAGE_VERSION, f"{STORAGE_KEY}.{entry.entry_id}"
@@ -126,6 +205,59 @@ class FlueGuardCoordinator(DataUpdateCoordinator[FlueGuardData]):
             name=f"{DOMAIN}_{entry.entry_id}",
             update_interval=timedelta(seconds=max(10, interval)),
         )
+
+    # ------------------------------------------------------------------
+    # fan control
+    # ------------------------------------------------------------------
+    @property
+    def limits(self) -> Limits:
+        """Return the active combustion thresholds."""
+        return self._limits
+
+    def fan_decision(self) -> FanDecision:
+        """Return the automatic fan target for the current measurement."""
+        if not self.fan_entity or self.data is None:
+            return FanDecision(0, False, FanReason.OFF)
+
+        room = (
+            self._read_temperature(self.fan_room_entity)
+            if self.fan_room_entity
+            else None
+        )
+        hour = dt_util.now().hour
+        is_night = in_night_window(
+            hour,
+            self.fan_settings.night_start,
+            self.fan_settings.night_end,
+        )
+
+        return fan_percentage(
+            self.data.temperature,
+            self.fan_settings,
+            room_temperature=room,
+            is_night=is_night,
+        )
+
+    def _read_temperature(self, entity_id: str) -> float | None:
+        """Read an optional room temperature entity in °C."""
+        state = self.hass.states.get(entity_id)
+        if state is None or state.state in (STATE_UNKNOWN, STATE_UNAVAILABLE):
+            return None
+        try:
+            value = float(state.state)
+        except (TypeError, ValueError):
+            return None
+
+        unit = (
+            state.attributes.get(ATTR_UNIT_OF_MEASUREMENT)
+            or self.hass.config.units.temperature_unit
+        )
+        try:
+            return float(
+                TemperatureConverter.convert(value, unit, UnitOfTemperature.CELSIUS)
+            )
+        except (TypeError, ValueError, KeyError):
+            return None
 
     # ------------------------------------------------------------------
     # persistence
